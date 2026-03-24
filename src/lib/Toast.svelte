@@ -97,6 +97,7 @@
 		swipeDirections: swipeDirectionsProp,
 		closeButtonAriaLabel,
 		pauseWhenPageIsHidden,
+		posHeights,
 		...restProps
 	}: ToastProps = $props();
 
@@ -128,7 +129,7 @@
 	const toastDescriptionClass = $derived(toast.descriptionClass || '');
 	// height index is used to calculate the offset as it gets updated before the toast array, which means we can calculate the new layout faster.
 	const heightIndex = $derived(
-		toastState.heights.findIndex((height) => height.toastId === toast.id) ||
+		(posHeights ?? toastState.heights).findIndex((height) => height.toastId === toast.id) ||
 			0
 	);
 	const closeButton = $derived(toast.closeButton ?? closeButtonFromToaster);
@@ -138,7 +139,7 @@
 	let pointerStart: { x: number; y: number } | null = null;
 	const coords = $derived(position.split('-'));
 	const toastsHeightBefore = $derived(
-		toastState.heights.reduce((prev, curr, reducerIndex) => {
+		(posHeights ?? toastState.heights).reduce((prev, curr, reducerIndex) => {
 			if (reducerIndex >= heightIndex) return prev;
 			return prev + curr.height;
 		}, 0)

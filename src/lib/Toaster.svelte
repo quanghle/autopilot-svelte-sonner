@@ -80,10 +80,7 @@
 	import type { ToasterProps } from './types.js';
 	import type { Position } from './types.js';
 	import type {
-		DragEventHandler,
-		FocusEventHandler,
-		MouseEventHandler,
-		PointerEventHandler
+		FocusEventHandler
 	} from 'svelte/elements';
 	import SuccessIcon from './icons/SuccessIcon.svelte';
 	import ErrorIcon from './icons/ErrorIcon.svelte';
@@ -181,8 +178,8 @@
 		) as Position[]
 	);
 
-	let expanded = $state(false);
-	let interacting = $state(false);
+	let expandedPosition = $state<string | null>(null);
+	let interactingPosition = $state<string | null>(null);
 	let actualTheme = $state(getInitialTheme(theme));
 	let listRef = $state<HTMLOListElement>();
 	let lastFocusedElementRef = $state<HTMLElement | null>(null);
@@ -194,7 +191,7 @@
 
 	$effect(() => {
 		if (toastState.toasts.length <= 1) {
-			expanded = false;
+			expandedPosition = null;
 		}
 	});
 
@@ -240,7 +237,7 @@
 					(event as any)[key] || event.code === key
 			);
 			if (isHotkeyPressed) {
-				expanded = true;
+				expandedPosition = possiblePositions[0] ?? null;
 				listRef?.focus();
 			}
 
@@ -249,7 +246,7 @@
 				(document.activeElement === listRef ||
 					listRef?.contains(document.activeElement))
 			) {
-				expanded = false;
+				expandedPosition = null;
 			}
 		};
 
@@ -319,44 +316,6 @@
 		}
 	};
 
-	const handlePointerDown: PointerEventHandler<HTMLOListElement> = (
-		event
-	) => {
-		onpointerdown?.(event);
-		const isNotDismissable =
-			event.target instanceof HTMLElement &&
-			event.target.dataset.dismissible === 'false';
-
-		if (isNotDismissable) return;
-		interacting = true;
-	};
-
-	const handleMouseEnter: MouseEventHandler<HTMLOListElement> = (event) => {
-		onmouseenter?.(event);
-		expanded = true;
-	};
-
-	const handleMouseLeave: MouseEventHandler<HTMLOListElement> = (event) => {
-		onmouseleave?.(event);
-		if (!interacting) {
-			expanded = false;
-		}
-	};
-
-	const handleMouseMove: MouseEventHandler<HTMLOListElement> = (event) => {
-		onmousemove?.(event);
-		expanded = true;
-	};
-
-	const handleDragEnd: DragEventHandler<HTMLOListElement> = (event) => {
-		ondragend?.(event);
-		expanded = false;
-	};
-
-	const handlePointerUp: PointerEventHandler<HTMLOListElement> = (event) => {
-		onpointerup?.(event);
-		interacting = false;
-	};
 
 	sonnerContext.set(new SonnerState());
 </script>
@@ -374,6 +333,8 @@
 		{#each possiblePositions as position, index (position)}
 			{@const [y, x] = position.split('-')}
 			{@const offsetObject = getOffsetObject(offset, mobileOffset)}
+			{@const posToastIds = new Set(toastState.toasts.filter((t) => (!t.position && index === 0) || t.position === position).map((t) => t.id))}
+			{@const posHeights = toastState.heights.filter((h) => posToastIds.has(h.toastId))}
 			<!-- eslint-disable-next-line svelte/valid-compile -->
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ol
@@ -385,7 +346,7 @@
 				data-sonner-theme={actualTheme}
 				data-y-position={y}
 				data-x-position={x}
-				style:--front-toast-height={`${toastState.heights[0]?.height}px`}
+				style:--front-toast-height={`${posHeights[0]?.height ?? 0}px`}
 				style:--width={`${TOAST_WIDTH}px`}
 				style:--gap={`${gap}px`}
 				style:--offset-top={offsetObject['--offset-top']}
@@ -405,12 +366,12 @@
 				style={restProps.style}
 				onblur={handleBlur}
 				onfocus={handleFocus}
-				onmouseenter={handleMouseEnter}
-				onmousemove={handleMouseMove}
-				onmouseleave={handleMouseLeave}
-				ondragend={handleDragEnd}
-				onpointerdown={handlePointerDown}
-				onpointerup={handlePointerUp}
+				onmouseenter={(e) => { onmouseenter?.(e); expandedPosition = position; }}
+				onmousemove={(e) => { onmousemove?.(e); expandedPosition = position; }}
+				onmouseleave={(e) => { onmouseleave?.(e); if (interactingPosition !== position) expandedPosition = null; }}
+				ondragend={(e) => { ondragend?.(e); expandedPosition = null; }}
+				onpointerdown={(e) => { onpointerdown?.(e); if (e.target instanceof HTMLElement && e.target.dataset.dismissible === 'false') return; interactingPosition = position; }}
+				onpointerup={(e) => { onpointerup?.(e); interactingPosition = null; }}
 				{...restProps}
 			>
 				{#each toastState.toasts.filter((toast) => (!toast.position && index === 0) || toast.position === position) as toast, index (toast.id)}
@@ -424,7 +385,7 @@
 						{invert}
 						{visibleToasts}
 						{closeButton}
-						{interacting}
+						interacting={interactingPosition === position}
 						{position}
 						style={toastOptions?.style ?? ''}
 						classes={toastOptions.classes || {}}
@@ -436,7 +397,8 @@
 						closeButtonAriaLabel={toastOptions?.closeButtonAriaLabel ??
 							closeButtonAriaLabel}
 						expandByDefault={expand}
-						{expanded}
+						expanded={expandedPosition === position}
+						{posHeights}
 						{pauseWhenPageIsHidden}
 						loadingIcon={loadingIconProp}
 					>
