@@ -13,7 +13,7 @@ export function getOtherCodeSnippet(
 }
 
 export const usageSnippet = `<script>
-  import { Toaster, toast } from 'svelte-sonner'
+  import { Toaster, toast } from '@quanghle/svelte-sonner'
 </script>
 
 <!-- ... -->

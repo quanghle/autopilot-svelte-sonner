@@ -277,7 +277,7 @@ export class SonnerState {
  * @example
  * ```svelte
  * <script lang="ts">
- *   import { useSonner } from 'svelte-sonner';
+ *   import { useSonner } from '@quanghle/svelte-sonner';
  *
  *   const sonner = useSonner();
  *
