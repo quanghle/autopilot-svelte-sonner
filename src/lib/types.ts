@@ -399,5 +399,6 @@ export type ToastProps = {
 	closeButtonAriaLabel: string;
 	defaultRichColors: boolean;
 	pauseWhenPageIsHidden: boolean;
+	posHeights?: HeightT[];
 } & HTMLAttributes<HTMLLIElement> &
 	ToastIcons;
