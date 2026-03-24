@@ -1,6 +1,6 @@
 https://github.com/wobsoriano/svelte-sonner/assets/13049130/4b9c250f-1431-4130-9c5b-5a4f8b0210c5
 
-# svelte-sonner
+# @quanghle/svelte-sonner
 
 [![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-cc00ff.svg?style=for-the-badge&logo=pnpm)](https://pnpm.io/)
 
@@ -11,18 +11,18 @@ An opinionated toast component for Svelte. A port of Emil Kowalski's [Sonner](ht
 Install it:
 
 ```bash
-npm i svelte-sonner
+npm i @quanghle/svelte-sonner
 # or
-yarn add svelte-sonner
+yarn add @quanghle/svelte-sonner
 # or
-pnpm add svelte-sonner
+pnpm add @quanghle/svelte-sonner
 ```
 
 Add `<Toaster />` to your app, it will be the place where all your toasts will be rendered. After that, you can use `toast()` from anywhere in your app.
 
 ```svelte
 <script>
-	import { Toaster, toast } from 'svelte-sonner';
+	import { Toaster, toast } from '@quanghle/svelte-sonner';
 </script>
 
 <Toaster />
