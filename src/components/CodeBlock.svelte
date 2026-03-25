@@ -75,11 +75,15 @@
 
 	async function onCopy() {
 		if (!code) return;
-		await navigator.clipboard.writeText(code);
-		copying++;
-		setTimeout(() => {
-			copying--;
-		}, 2000);
+		try {
+			await navigator.clipboard.writeText(code);
+			copying++;
+			setTimeout(() => {
+				copying--;
+			}, 2000);
+		} catch {
+			// Clipboard API may not be available in all contexts
+		}
 	}
 </script>
 

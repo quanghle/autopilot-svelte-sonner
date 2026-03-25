@@ -2,11 +2,15 @@
 	let copying = 0;
 
 	async function onCopy() {
-		await navigator.clipboard.writeText("import { Toaster, toast } from 'autopilot-svelte-sonner'");
-		copying++;
-		setTimeout(() => {
-			copying--;
-		}, 2000);
+		try {
+			await navigator.clipboard.writeText("import { Toaster, toast } from 'autopilot-svelte-sonner'");
+			copying++;
+			setTimeout(() => {
+				copying--;
+			}, 2000);
+		} catch {
+			// Clipboard API may not be available in all contexts
+		}
 	}
 </script>
 
