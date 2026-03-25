@@ -41,13 +41,10 @@
 	"peerDependencies": {
 		"svelte": "^5.0.0"
 	},
-	"dependencies": {
-		"runed": "^0.37.1"
-	},
+	"dependencies": {},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@playwright/test": "^1.58.2",
-		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.55.0",
 		"@sveltejs/package": "^2.5.7",
@@ -56,22 +53,17 @@
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/svelte": "^5.3.1",
 		"@testing-library/user-event": "^14.6.1",
-		"@types/jest-axe": "^3.5.9",
-		"copy-to-clipboard": "^3.3.3",
 		"eslint": "^10.1.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.16.0",
 		"globals": "^17.4.0",
 		"highlight.js": "^11.11.1",
 		"jsdom": "^29.0.1",
-		"mode-watcher": "^1.1.0",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.5.1",
 		"publint": "^0.3.18",
 		"svelte": "^5.55.0",
 		"svelte-check": "^4.4.5",
-		"svelte-preprocess": "^6.0.3",
-		"tslib": "^2.8.1",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.57.2",
 		"vite": "^8.0.2",
@@ -83,8 +75,7 @@
 	"pnpm": {
 		"onlyBuiltDependencies": [
 			"@sveltejs/kit",
-			"esbuild",
-			"svelte-preprocess"
+			"esbuild"
 		]
 	},
 	"sideEffects": false,
