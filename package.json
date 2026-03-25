@@ -1,14 +1,14 @@
 {
-	"name": "@quanghle/svelte-sonner",
+	"name": "autopilot-svelte-sonner",
 	"description": "An opinionated toast component for Svelte.",
 	"license": "MIT",
 	"author": "Robert Soriano <sorianorobertc@gmail.com>",
-	"homepage": "https://github.com/wobsoriano/svelte-sonner#readme",
+	"homepage": "https://quanghle.github.io/autopilot-svelte-sonner",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/wobsoriano/svelte-sonner.git"
+		"url": "git+https://github.com/quanghle/autopilot-svelte-sonner.git"
 	},
-	"bugs": "https://github.com/wobsoriano/svelte-sonner/issues",
+	"bugs": "https://github.com/quanghle/autopilot-svelte-sonner/issues",
 	"keywords": [
 		"svelte",
 		"toast"
@@ -51,6 +51,7 @@
 		"@eslint/js": "^9.39.1",
 		"@playwright/test": "^1.56.1",
 		"@sveltejs/adapter-auto": "^3.3.1",
+		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.48.4",
 		"@sveltejs/package": "^2.5.4",
 		"@sveltejs/vite-plugin-svelte": "^5.1.1",

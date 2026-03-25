@@ -4,7 +4,7 @@
 	let copying = 0;
 
 	function onCopy() {
-		copy('npm install @quanghle/svelte-sonner');
+		copy("import { Toaster, toast } from 'autopilot-svelte-sonner'");
 		copying++;
 		setTimeout(() => {
 			copying--;
@@ -13,11 +13,11 @@
 </script>
 
 <div>
-	<h2>Installation</h2>
+	<h2>Usage</h2>
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 	<code class="code" onclick={onCopy}>
-		npm install @quanghle/svelte-sonner
+		import &#123; Toaster, toast &#125; from 'autopilot-svelte-sonner'
 		<button aria-label="Copy code" class="copy">
 			{#if copying}
 				<div>

@@ -10,6 +10,7 @@
 	import Types from '../components/Types.svelte';
 	import Usage from '../components/Usage.svelte';
 	import { richColorsContext } from '$lib/internal/ctx.js';
+	import { base } from '$app/paths';
 
 	let expand = $state(false);
 	let position = $state<PositionType>('bottom-right');
@@ -37,14 +38,14 @@
 		content="An opinionated toast component for Svelte."
 	/>
 	<meta property="og:site_name" content="Svelte Sonner" />
-	<meta property="og:url" content="https://svelte-sonner.vercel.app" />
+	<meta property="og:url" content="https://quanghle.github.io/autopilot-svelte-sonner" />
 	<meta
 		property="og:image"
 		content="https://og-image.vercel.app/Svelte%20Sonner"
 	/>
-	<link rel="icon" href="/favicon.png" />
+	<link rel="icon" href="{base}/favicon.png" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:site" content="@wobsoriano" />
+	<meta name="twitter:site" content="@quanghle" />
 	<meta
 		name="twitter:description"
 		content="An opinionated toast component for Svelte."

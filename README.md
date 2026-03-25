@@ -1,28 +1,20 @@
-https://github.com/wobsoriano/svelte-sonner/assets/13049130/4b9c250f-1431-4130-9c5b-5a4f8b0210c5
-
-# @quanghle/svelte-sonner
+# autopilot-svelte-sonner
 
 [![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-cc00ff.svg?style=for-the-badge&logo=pnpm)](https://pnpm.io/)
 
 An opinionated toast component for Svelte. A port of Emil Kowalski's [Sonner](https://sonner.emilkowal.ski/).
 
+## Demo
+
+Check out the live demo at [https://quanghle.github.io/autopilot-svelte-sonner](https://quanghle.github.io/autopilot-svelte-sonner).
+
 ## Quick start
-
-Install it:
-
-```bash
-npm i @quanghle/svelte-sonner
-# or
-yarn add @quanghle/svelte-sonner
-# or
-pnpm add @quanghle/svelte-sonner
-```
 
 Add `<Toaster />` to your app, it will be the place where all your toasts will be rendered. After that, you can use `toast()` from anywhere in your app.
 
 ```svelte
 <script>
-	import { Toaster, toast } from '@quanghle/svelte-sonner';
+	import { Toaster, toast } from 'autopilot-svelte-sonner';
 </script>
 
 <Toaster />
@@ -376,6 +368,28 @@ You can focus on the toast area by pressing ⌥/alt + T. You can override it by 
 
 ```svelte
 <Toaster hotkey={['KeyC']} />
+```
+
+## GitHub Pages Demo
+
+The live demo is deployed automatically to GitHub Pages at [https://quanghle.github.io/autopilot-svelte-sonner](https://quanghle.github.io/autopilot-svelte-sonner).
+
+### How it works
+
+The demo site is built using SvelteKit with `@sveltejs/adapter-static` and deployed via a GitHub Actions workflow (`.github/workflows/deploy.yml`). Every push to the `main` branch triggers a build and deploy to GitHub Pages.
+
+### Running the demo locally
+
+```bash
+# Install dependencies
+npm install
+
+# Start the dev server
+npm run dev
+
+# Or build and preview the production version
+npm run build
+npx vite preview
 ```
 
 ## License
