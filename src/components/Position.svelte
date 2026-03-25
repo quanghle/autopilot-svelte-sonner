@@ -13,13 +13,7 @@
 
 	type PositionType = (typeof positions)[number];
 
-	let {
-		position,
-		setPosition
-	}: {
-		position: PositionType;
-		setPosition: (position: PositionType) => void;
-	} = $props();
+	let activePosition = $state<PositionType>('bottom-right');
 </script>
 
 <div>
@@ -28,19 +22,13 @@
 	<div class="buttons">
 		{#each positions as pos (pos)}
 			<button
-				data-active={position === pos}
+				data-active={activePosition === pos}
 				class="button"
 				onclick={() => {
-					const toastsAmount = document.querySelectorAll(
-						'[data-sonner-toast]'
-					).length;
-					setPosition(pos);
-
-					// No need to show a toast when there is already one
-					if (toastsAmount > 0 && pos !== position) return;
-
+					activePosition = pos;
 					toast('Event has been created', {
-						description: 'Monday, January 3rd at 6:00pm'
+						description: 'Monday, January 3rd at 6:00pm',
+						position: pos
 					});
 				}}
 			>
@@ -48,5 +36,5 @@
 			</button>
 		{/each}
 	</div>
-	<CodeBlock code={`<Toaster position="${position}" />`} />
+	<CodeBlock code={`toast('Event has been created', { position: "${activePosition}" })`} />
 </div>

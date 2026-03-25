@@ -8,7 +8,7 @@
 		<div class="toast"></div>
 		<div class="toast"></div>
 	</div>
-	<h1 class="heading">Svelte Sonner</h1>
+	<h1 class="heading">Autopilot Svelte Sonner</h1>
 	<p class="hero-description">
 		An opinionated toast component for Svelte.<br /> A port of Emil Kowalski's
 		Sonner.
