@@ -9,8 +9,8 @@ test.beforeEach(async ({ page }) => {
 
 test('toast is rendered and disappears after the default timeout', async ({ page }) => {
 	await page.getByTestId('default-button').click();
-	await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
-	await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
+	await expect(page.locator('[data-sonner-toast]')).toHaveCount(1);
+	await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 10000 });
 });
 
 test('various toast types are rendered correctly', async ({ page }) => {
@@ -37,6 +37,7 @@ test('render custom component in toast', async ({ page }) => {
 
 test('toast is removed after swiping down', async ({ page }) => {
 	await page.getByTestId('default-button').click();
+	await expect(page.locator('[data-sonner-toast]')).toHaveCount(1);
 	await page.hover('[data-sonner-toast]');
 	await page.mouse.down();
 	await page.mouse.move(0, 800);
@@ -46,6 +47,7 @@ test('toast is removed after swiping down', async ({ page }) => {
 
 test('toast is not removed when hovered', async ({ page }) => {
 	await page.getByTestId('default-button').click();
+	await expect(page.locator('[data-sonner-toast]')).toHaveCount(1);
 	await page.hover('[data-sonner-toast]');
 	const timeout = new Promise((resolve) => setTimeout(resolve, 5000));
 	await timeout;
@@ -61,8 +63,43 @@ test('close a toast from inside a custom component', async ({ page }) => {
 
 test('render custom component with properties in toast of predefined type', async ({ page }) => {
 	await page.getByTestId('other-Custom with properties').click();
-	console.log(await page.locator('[data-sonner-toast]').textContent());
 	await expect(
 		page.locator('[data-sonner-toast]').getByText('This is multiline message')
 	).toHaveCount(1);
+});
+
+test('toast with description shows description text', async ({ page }) => {
+	await page.getByTestId('Description').click();
+	await expect(page.getByText('Event has been created')).toHaveCount(1);
+	await expect(page.getByText('Monday, January 3rd at 6:00pm')).toHaveCount(1);
+});
+
+test('info toast is rendered correctly', async ({ page }) => {
+	await page.getByTestId('Info').click();
+	await expect(page.getByText('Event will be created')).toHaveCount(1);
+	await expect(page.locator('[data-sonner-toast][data-type="info"]')).toHaveCount(1);
+});
+
+test('warning toast is rendered correctly', async ({ page }) => {
+	await page.getByTestId('Warning').click();
+	await expect(page.getByText('Event has warnings')).toHaveCount(1);
+	await expect(page.locator('[data-sonner-toast][data-type="warning"]')).toHaveCount(1);
+});
+
+test('rich colors success toast has rich colors attribute', async ({ page }) => {
+	await page.getByTestId('other-Rich Colors Success').click();
+	await expect(page.getByText('Event has been created')).toHaveCount(1);
+	await expect(page.locator('[data-sonner-toast][data-rich-colors="true"]')).toHaveCount(1);
+});
+
+test('rich colors error toast has rich colors attribute', async ({ page }) => {
+	await page.getByTestId('other-Rich Colors Error').click();
+	await expect(page.getByText('Event has not been created')).toHaveCount(1);
+	await expect(page.locator('[data-sonner-toast][data-rich-colors="true"]')).toHaveCount(1);
+});
+
+test('close button toggles visibility', async ({ page }) => {
+	await page.getByTestId('other-Close buttons').click();
+	await expect(page.locator('[data-sonner-toast]')).toHaveCount(1);
+	await expect(page.locator('[data-close-button]')).toHaveCount(1);
 });
