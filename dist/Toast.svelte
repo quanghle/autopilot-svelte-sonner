@@ -76,11 +76,15 @@ const closeButton = $derived(toast.closeButton ?? closeButtonFromToaster);
 const duration = $derived(toast.duration ?? durationFromToaster ?? TOAST_LIFETIME);
 let pointerStart = null;
 const coords = $derived(position.split('-'));
-const toastsHeightBefore = $derived((posHeights ?? toastState.heights).reduce((prev, curr, reducerIndex) => {
-    if (reducerIndex >= heightIndex)
-        return prev;
-    return prev + curr.height;
-}, 0));
+const toastsHeightBefore = $derived.by(() => {
+    const heights = posHeights ?? toastState.heights;
+    let sum = 0;
+    const end = Math.min(heightIndex, heights.length);
+    for (let i = 0; i < end; i++) {
+        sum += heights[i]?.height ?? 0;
+    }
+    return sum;
+});
 const isDocumentHidden = useDocumentHidden();
 const invert = $derived(toast.invert || invertFromToaster);
 const disabled = $derived(toastType === 'loading');
@@ -106,7 +110,7 @@ $effect(() => {
     toastEl.style.setProperty('height', 'auto');
     const offsetHeight = toastEl.offsetHeight;
     const rectHeight = toastEl.getBoundingClientRect().height;
-    const scaledRectHeight = Math.round((rectHeight / scale + Number.EPSILON) & 100) / 100;
+    const scaledRectHeight = Math.round((rectHeight / scale + Number.EPSILON) * 100) / 100;
     toastEl.style.removeProperty('height');
     let finalHeight;
     if (Math.abs(scaledRectHeight - offsetHeight) < 1) {
@@ -251,12 +255,15 @@ const handlePointerMove = (event) => {
         swipeDirection = Math.abs(xDelta) > Math.abs(yDelta) ? 'x' : 'y';
     }
     let swipeAmount = { x: 0, y: 0 };
+    const allowTop = swipeDirections.includes('top');
+    const allowBottom = swipeDirections.includes('bottom');
+    const allowLeft = swipeDirections.includes('left');
+    const allowRight = swipeDirections.includes('right');
     if (swipeDirection === 'y') {
         // handle vertical swipes
-        if (swipeDirections.includes('top') ||
-            swipeDirections.includes('bottom')) {
-            if ((swipeDirections.includes('top') && yDelta < 0) ||
-                (swipeDirections.includes('bottom') && yDelta > 0)) {
+        if (allowTop || allowBottom) {
+            if ((allowTop && yDelta < 0) ||
+                (allowBottom && yDelta > 0)) {
                 swipeAmount.y = yDelta;
             }
             else {
@@ -272,10 +279,9 @@ const handlePointerMove = (event) => {
     }
     else if (swipeDirection === 'x') {
         // handle horizontal swipes
-        if (swipeDirections.includes('left') ||
-            swipeDirections.includes('right')) {
-            if ((swipeDirections.includes('left') && xDelta < 0) ||
-                (swipeDirections.includes('right') && xDelta > 0)) {
+        if (allowLeft || allowRight) {
+            if ((allowLeft && xDelta < 0) ||
+                (allowRight && xDelta > 0)) {
                 swipeAmount.x = xDelta;
             }
             else {

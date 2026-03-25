@@ -37,11 +37,11 @@ class ToastState {
 	};
 
 	updateToast = ({ id, data, type, message }: UpdateToastProps): void => {
-		const toastIdx = this.toasts.findIndex((toast) => toast.id === id);
-		const toastToUpdate = this.toasts[toastIdx];
+		const toastIdx = this.#findToastIdx(id);
+		if (toastIdx === null) return;
 
 		this.toasts[toastIdx] = {
-			...toastToUpdate,
+			...this.toasts[toastIdx],
 			...data,
 			id,
 			title: message,
@@ -228,12 +228,17 @@ class ToastState {
 	};
 
 	setHeight = (data: HeightT) => {
-		const toastIdx = this.#findToastIdx(data.toastId);
-		if (toastIdx === null) {
+		// Use untrack to avoid reading this.heights reactively, which would
+		// create an infinite loop when called from an $effect that also depends
+		// on heights indirectly.
+		const heightIdx = untrack(() =>
+			this.heights.findIndex((h) => h.toastId === data.toastId)
+		);
+		if (heightIdx === -1) {
 			this.heights.push(data);
-			return;
+		} else {
+			this.heights[heightIdx] = data;
 		}
-		this.heights[toastIdx] = data;
 	};
 
 	reset = () => {

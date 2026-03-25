@@ -3,12 +3,14 @@
 </script>
 
 <script lang="ts">
+	import { cn } from './internal/helpers.js';
+
 	let { visible, class: className }: { visible: boolean; class?: string } =
 		$props();
 </script>
 
 <div
-	class={['sonner-loading-wrapper', className].filter(Boolean).join(' ')}
+	class={cn('sonner-loading-wrapper', className)}
 	data-visible={visible}
 >
 	<div class="sonner-spinner">

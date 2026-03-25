@@ -138,12 +138,15 @@
 	);
 	let pointerStart: { x: number; y: number } | null = null;
 	const coords = $derived(position.split('-'));
-	const toastsHeightBefore = $derived(
-		(posHeights ?? toastState.heights).reduce((prev, curr, reducerIndex) => {
-			if (reducerIndex >= heightIndex) return prev;
-			return prev + curr.height;
-		}, 0)
-	);
+	const toastsHeightBefore = $derived.by(() => {
+		const heights = posHeights ?? toastState.heights;
+		let sum = 0;
+		const end = Math.min(heightIndex, heights.length);
+		for (let i = 0; i < end; i++) {
+			sum += heights[i]?.height ?? 0;
+		}
+		return sum;
+	});
 	const isDocumentHidden = useDocumentHidden();
 	const invert = $derived(toast.invert || invertFromToaster);
 	const disabled = $derived(toastType === 'loading');
@@ -176,7 +179,7 @@
 		const offsetHeight = toastEl.offsetHeight;
 		const rectHeight = toastEl.getBoundingClientRect().height;
 		const scaledRectHeight =
-			Math.round((rectHeight / scale + Number.EPSILON) & 100) / 100;
+			Math.round((rectHeight / scale + Number.EPSILON) * 100) / 100;
 
 		toastEl.style.removeProperty('height');
 
@@ -359,15 +362,17 @@
 
 		let swipeAmount = { x: 0, y: 0 };
 
+		const allowTop = swipeDirections.includes('top');
+		const allowBottom = swipeDirections.includes('bottom');
+		const allowLeft = swipeDirections.includes('left');
+		const allowRight = swipeDirections.includes('right');
+
 		if (swipeDirection === 'y') {
 			// handle vertical swipes
-			if (
-				swipeDirections.includes('top') ||
-				swipeDirections.includes('bottom')
-			) {
+			if (allowTop || allowBottom) {
 				if (
-					(swipeDirections.includes('top') && yDelta < 0) ||
-					(swipeDirections.includes('bottom') && yDelta > 0)
+					(allowTop && yDelta < 0) ||
+					(allowBottom && yDelta > 0)
 				) {
 					swipeAmount.y = yDelta;
 				} else {
@@ -382,13 +387,10 @@
 			}
 		} else if (swipeDirection === 'x') {
 			// handle horizontal swipes
-			if (
-				swipeDirections.includes('left') ||
-				swipeDirections.includes('right')
-			) {
+			if (allowLeft || allowRight) {
 				if (
-					(swipeDirections.includes('left') && xDelta < 0) ||
-					(swipeDirections.includes('right') && xDelta > 0)
+					(allowLeft && xDelta < 0) ||
+					(allowRight && xDelta > 0)
 				) {
 					swipeAmount.x = xDelta;
 				} else {

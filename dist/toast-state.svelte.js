@@ -17,10 +17,11 @@ class ToastState {
         this.toasts.unshift(data);
     };
     updateToast = ({ id, data, type, message }) => {
-        const toastIdx = this.toasts.findIndex((toast) => toast.id === id);
-        const toastToUpdate = this.toasts[toastIdx];
+        const toastIdx = this.#findToastIdx(id);
+        if (toastIdx === null)
+            return;
         this.toasts[toastIdx] = {
-            ...toastToUpdate,
+            ...this.toasts[toastIdx],
             ...data,
             id,
             title: message,
@@ -155,12 +156,16 @@ class ToastState {
         this.heights = this.heights.filter((height) => height.toastId !== id);
     };
     setHeight = (data) => {
-        const toastIdx = this.#findToastIdx(data.toastId);
-        if (toastIdx === null) {
+        // Use untrack to avoid reading this.heights reactively, which would
+        // create an infinite loop when called from an $effect that also depends
+        // on heights indirectly.
+        const heightIdx = untrack(() => this.heights.findIndex((h) => h.toastId === data.toastId));
+        if (heightIdx === -1) {
             this.heights.push(data);
-            return;
         }
-        this.heights[toastIdx] = data;
+        else {
+            this.heights[heightIdx] = data;
+        }
     };
     reset = () => {
         this.toasts = [];
