@@ -79,7 +79,8 @@ const coords = $derived(position.split('-'));
 const toastsHeightBefore = $derived.by(() => {
     const heights = posHeights ?? toastState.heights;
     let sum = 0;
-    for (let i = 0; i < heightIndex; i++) {
+    const end = Math.min(heightIndex, heights.length);
+    for (let i = 0; i < end; i++) {
         sum += heights[i]?.height ?? 0;
     }
     return sum;
