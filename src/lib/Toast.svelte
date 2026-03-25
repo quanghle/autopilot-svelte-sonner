@@ -110,7 +110,7 @@
 	let isSwiped = $state(false);
 	let offsetBeforeRemove = $state(0);
 	let initialHeight = $state(0);
-	let remainingTime = toast.duration || durationFromToaster || TOAST_LIFETIME;
+	let remainingTime = TOAST_LIFETIME;
 	let dragStartTime = $state<Date | null>(null);
 	let toastRef = $state<HTMLLIElement>();
 	let swipeDirection = $state<'x' | 'y' | null>(null);
@@ -215,6 +215,10 @@
 	);
 
 	function startTimer() {
+		// On first call, initialize remainingTime from the computed duration
+		if (closeTimerStartTime === 0) {
+			remainingTime = duration;
+		}
 		closeTimerStartTime = new Date().getTime();
 		// let the toast know it has started
 		timeoutId = setTimeout(() => {

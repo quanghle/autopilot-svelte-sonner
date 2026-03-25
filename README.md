@@ -378,20 +378,6 @@ The live demo is deployed automatically to GitHub Pages at [https://quanghle.git
 
 The demo site is built using SvelteKit with `@sveltejs/adapter-static` and deployed via a GitHub Actions workflow (`.github/workflows/deploy.yml`). Every push to the `main` branch triggers a build and deploy to GitHub Pages.
 
-### Running the demo locally
-
-```bash
-# Install dependencies
-npm install
-
-# Start the dev server
-npm run dev
-
-# Or build and preview the production version
-npm run build
-npx vite preview
-```
-
 ## License
 
 MIT

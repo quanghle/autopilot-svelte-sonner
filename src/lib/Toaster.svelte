@@ -180,7 +180,8 @@
 
 	let expandedPosition = $state<string | null>(null);
 	let interactingPosition = $state<string | null>(null);
-	let actualTheme = $state(getInitialTheme(theme));
+	let themeOverride = $state<string | null>(null);
+	const actualTheme = $derived(themeOverride ?? getInitialTheme(theme));
 	let listRef = $state<HTMLOListElement>();
 	let lastFocusedElementRef = $state<HTMLElement | null>(null);
 	let isFocusWithin = $state(false);
@@ -255,7 +256,7 @@
 
 	$effect(() => {
 		if (theme !== 'system') {
-			actualTheme = theme;
+			themeOverride = theme;
 		}
 
 		if (typeof window !== 'undefined') {
@@ -264,9 +265,9 @@
 					window.matchMedia &&
 					window.matchMedia('(prefers-color-scheme: dark)').matches
 				) {
-					actualTheme = DARK;
+					themeOverride = DARK;
 				} else {
-					actualTheme = LIGHT;
+					themeOverride = LIGHT;
 				}
 			}
 
@@ -276,7 +277,7 @@
 
 			const changeHandler = ({ matches }: MediaQueryListEvent) => {
 				if (theme !== 'system') return;
-				actualTheme = matches ? DARK : LIGHT;
+				themeOverride = matches ? DARK : LIGHT;
 			};
 
 			if ('addEventListener' in mediaQueryList) {
