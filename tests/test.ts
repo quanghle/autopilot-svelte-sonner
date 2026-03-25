@@ -98,7 +98,7 @@ test('rich colors error toast has rich colors attribute', async ({ page }) => {
 	await expect(page.locator('[data-sonner-toast][data-rich-colors="true"]')).toHaveCount(1);
 });
 
-test('close button toggles visibility', async ({ page }) => {
+test('close button is rendered when enabled', async ({ page }) => {
 	await page.getByTestId('other-Close buttons').click();
 	await expect(page.locator('[data-sonner-toast]')).toHaveCount(1);
 	await expect(page.locator('[data-close-button]')).toHaveCount(1);
