@@ -165,18 +165,15 @@
 		return dirAttribute;
 	}
 
-	const possiblePositions = $derived(
-		Array.from(
-			new Set(
-				[
-					position,
-					...toastState.toasts
-						.filter((toast) => toast.position)
-						.map((toast) => toast.position)
-				].filter(Boolean)
-			)
-		) as Position[]
-	);
+	const possiblePositions = $derived.by(() => {
+		const positions: Position[] = [position];
+		for (const toast of toastState.toasts) {
+			if (toast.position && !positions.includes(toast.position)) {
+				positions.push(toast.position);
+			}
+		}
+		return positions;
+	});
 
 	let expandedPosition = $state<string | null>(null);
 	let interactingPosition = $state<string | null>(null);
@@ -198,23 +195,18 @@
 
 	// Check for dismissed toasts and remove them. We need to do this to have dismiss animation.
 	$effect(() => {
-		const toastsToDismiss = toastState.toasts.filter(
-			(toast) => toast.dismiss && !toast.delete
-		);
+		let hasDismissed = false;
+		for (const toast of toastState.toasts) {
+			if (toast.dismiss && !toast.delete) {
+				hasDismissed = true;
+				break;
+			}
+		}
 
-		if (toastsToDismiss.length > 0) {
-			const updatedToasts = toastState.toasts.map((toast) => {
-				const matchingToast = toastsToDismiss.find(
-					(dismissToast) => dismissToast.id === toast.id
-				);
-
-				if (matchingToast) {
-					return { ...toast, delete: true };
-				}
-
-				return toast;
-			});
-			toastState.toasts = updatedToasts;
+		if (hasDismissed) {
+			toastState.toasts = toastState.toasts.map((toast) =>
+				toast.dismiss && !toast.delete ? { ...toast, delete: true } : toast
+			);
 		}
 	});
 
@@ -282,9 +274,12 @@
 
 			if ('addEventListener' in mediaQueryList) {
 				mediaQueryList.addEventListener('change', changeHandler);
+				return () => mediaQueryList.removeEventListener('change', changeHandler);
 			} else {
 				// @ts-expect-error deprecated API
 				mediaQueryList.addListener(changeHandler);
+				// @ts-expect-error deprecated API
+				return () => mediaQueryList.removeListener(changeHandler);
 			}
 		}
 	});
@@ -331,10 +326,11 @@
 	aria-atomic="false"
 >
 	{#if toastState.toasts.length > 0}
+		{@const offsetObject = getOffsetObject(offset, mobileOffset)}
 		{#each possiblePositions as position, index (position)}
 			{@const [y, x] = position.split('-')}
-			{@const offsetObject = getOffsetObject(offset, mobileOffset)}
-			{@const posToastIds = new Set(toastState.toasts.filter((t) => (!t.position && index === 0) || t.position === position).map((t) => t.id))}
+			{@const posToasts = toastState.toasts.filter((t) => (!t.position && index === 0) || t.position === position)}
+			{@const posToastIds = new Set(posToasts.map((t) => t.id))}
 			{@const posHeights = toastState.heights.filter((h) => posToastIds.has(h.toastId))}
 			<!-- eslint-disable-next-line svelte/valid-compile -->
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -375,7 +371,7 @@
 				onpointerup={(e) => { onpointerup?.(e); interactingPosition = null; }}
 				{...restProps}
 			>
-				{#each toastState.toasts.filter((toast) => (!toast.position && index === 0) || toast.position === position) as toast, index (toast.id)}
+				{#each posToasts as toast, index (toast.id)}
 					<Toast
 						{index}
 						{toast}
