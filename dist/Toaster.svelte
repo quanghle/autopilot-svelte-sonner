@@ -444,7 +444,8 @@
 	{/if}
 </section>
 
-<style global>
+<style>
+	:global {
 	html[dir='ltr'],
 	[data-sonner-toaster][dir='ltr'] {
 		--toast-icon-margin-start: -3px;
@@ -1216,5 +1217,6 @@
 	.sonner-loader[data-visible='false'] {
 		opacity: 0;
 		transform: scale(0.8) translate(-50%, -50%);
+	}
 	}
 </style>
