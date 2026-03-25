@@ -99,7 +99,8 @@ const possiblePositions = $derived(Array.from(new Set([
 ].filter(Boolean))));
 let expandedPosition = $state(null);
 let interactingPosition = $state(null);
-let actualTheme = $state(getInitialTheme(theme));
+let themeOverride = $state(null);
+const actualTheme = $derived(themeOverride ?? getInitialTheme(theme));
 let listRef = $state();
 let lastFocusedElementRef = $state(null);
 let isFocusWithin = $state(false);
@@ -152,23 +153,23 @@ onMount(() => {
 });
 $effect(() => {
     if (theme !== 'system') {
-        actualTheme = theme;
+        themeOverride = theme;
     }
     if (typeof window !== 'undefined') {
         if (theme === 'system') {
             if (window.matchMedia &&
                 window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                actualTheme = DARK;
+                themeOverride = DARK;
             }
             else {
-                actualTheme = LIGHT;
+                themeOverride = LIGHT;
             }
         }
         const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
         const changeHandler = ({ matches }) => {
             if (theme !== 'system')
                 return;
-            actualTheme = matches ? DARK : LIGHT;
+            themeOverride = matches ? DARK : LIGHT;
         };
         if ('addEventListener' in mediaQueryList) {
             mediaQueryList.addEventListener('change', changeHandler);

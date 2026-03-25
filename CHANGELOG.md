@@ -1,4 +1,4 @@
-# svelte-sonner
+# autopilot-svelte-sonner
 
 ## 1.1.0
 

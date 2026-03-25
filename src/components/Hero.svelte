@@ -28,7 +28,7 @@
 		</button>
 		<a
 			class="button"
-			href="https://github.com/wobsoriano/svelte-sonner"
+			href="https://github.com/quanghle/autopilot-svelte-sonner"
 			target="_blank"
 		>
 			GitHub

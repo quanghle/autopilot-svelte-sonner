@@ -13,5 +13,6 @@
 		"module": "NodeNext",
 		"noUncheckedIndexedAccess": true,
 		"verbatimModuleSyntax": true
-	}
+	},
+	"exclude": ["src/tests"]
 }

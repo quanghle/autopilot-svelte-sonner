@@ -56,7 +56,7 @@ let swipeOut = $state(false);
 let isSwiped = $state(false);
 let offsetBeforeRemove = $state(0);
 let initialHeight = $state(0);
-let remainingTime = toast.duration || durationFromToaster || TOAST_LIFETIME;
+let remainingTime = TOAST_LIFETIME;
 let dragStartTime = $state(null);
 let toastRef = $state();
 let swipeDirection = $state(null);
@@ -133,6 +133,10 @@ let timeoutId;
 const isPromiseLoadingOrInfiniteDuration = $derived((toast.promise && toastType === 'loading') ||
     toast.duration === Number.POSITIVE_INFINITY);
 function startTimer() {
+    // On first call, initialize remainingTime from the computed duration
+    if (closeTimerStartTime === 0) {
+        remainingTime = duration;
+    }
     closeTimerStartTime = new Date().getTime();
     // let the toast know it has started
     timeoutId = setTimeout(() => {
