@@ -330,8 +330,7 @@
 		{#each possiblePositions as position, index (position)}
 			{@const [y, x] = position.split('-')}
 			{@const posToasts = toastState.toasts.filter((t) => (!t.position && index === 0) || t.position === position)}
-			{@const posToastIds = new Set(posToasts.map((t) => t.id))}
-			{@const posHeights = toastState.heights.filter((h) => posToastIds.has(h.toastId))}
+			{@const posHeights = posToasts.map((t) => toastState.heights.find((h) => h.toastId === t.id)).filter((h) => h !== undefined)}
 			<!-- eslint-disable-next-line svelte/valid-compile -->
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ol
