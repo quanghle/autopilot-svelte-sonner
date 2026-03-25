@@ -1,10 +1,8 @@
 <script lang="ts">
-	import copy from 'copy-to-clipboard';
-
 	let copying = 0;
 
-	function onCopy() {
-		copy("import { Toaster, toast } from 'autopilot-svelte-sonner'");
+	async function onCopy() {
+		await navigator.clipboard.writeText("import { Toaster, toast } from 'autopilot-svelte-sonner'");
 		copying++;
 		setTimeout(() => {
 			copying--;

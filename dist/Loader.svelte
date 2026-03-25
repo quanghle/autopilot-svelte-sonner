@@ -1,9 +1,12 @@
-<script lang="ts" module>"use strict";
-const bars = Array(12).fill(0);
+<script lang="ts" module>
+	const bars = Array(12).fill(0);
 </script>
 
-<script lang="ts">import { cn } from './internal/helpers.js';
-let { visible, class: className } = $props();
+<script lang="ts">
+	import { cn } from './internal/helpers.js';
+
+	let { visible, class: className }: { visible: boolean; class?: string } =
+		$props();
 </script>
 
 <div

@@ -1,213 +1,319 @@
-<script lang="ts" module>"use strict";
-// visible toasts amount
-const VISIBLE_TOASTS_AMOUNT = 3;
-// Viewport padding
-const VIEWPORT_OFFSET = '24px';
-// Mobile viewport padding
-const MOBILE_VIEWPORT_OFFSET = '16px';
-// Default lifetime of a toasts (in ms)
-const TOAST_LIFETIME = 4000;
-// Default toast width
-const TOAST_WIDTH = 356;
-// Default gap between toasts
-const GAP = 14;
-const DARK = 'dark';
-const LIGHT = 'light';
-function getOffsetObject(defaultOffset, mobileOffset) {
-    const styles = {};
-    [defaultOffset, mobileOffset].forEach((offset, index) => {
-        const isMobile = index === 1;
-        const prefix = isMobile ? '--mobile-offset' : '--offset';
-        const defaultValue = isMobile
-            ? MOBILE_VIEWPORT_OFFSET
-            : VIEWPORT_OFFSET;
-        function assignAll(offset) {
-            ['top', 'right', 'bottom', 'left'].forEach((key) => {
-                styles[`${prefix}-${key}`] =
-                    typeof offset === 'number' ? `${offset}px` : offset;
-            });
-        }
-        if (typeof offset === 'number' || typeof offset === 'string') {
-            assignAll(offset);
-        }
-        else if (typeof offset === 'object') {
-            ['top', 'right', 'bottom', 'left'].forEach((key) => {
-                const value = offset[key];
-                if (value === undefined) {
-                    styles[`${prefix}-${key}`] =
-                        defaultValue;
-                }
-                else {
-                    styles[`${prefix}-${key}`] =
-                        typeof value === 'number' ? `${value}px` : value;
-                }
-            });
-        }
-        else {
-            assignAll(defaultValue);
-        }
-    });
-    return styles;
-}
+<script lang="ts" module>
+	// visible toasts amount
+	const VISIBLE_TOASTS_AMOUNT = 3;
+
+	// Viewport padding
+	const VIEWPORT_OFFSET = '24px';
+
+	// Mobile viewport padding
+	const MOBILE_VIEWPORT_OFFSET = '16px';
+
+	// Default lifetime of a toasts (in ms)
+	const TOAST_LIFETIME = 4000;
+
+	// Default toast width
+	const TOAST_WIDTH = 356;
+
+	// Default gap between toasts
+	const GAP = 14;
+
+	const DARK = 'dark';
+	const LIGHT = 'light';
+
+	type OffsetObject = {
+		'--offset-top': string;
+		'--offset-right': string;
+		'--offset-bottom': string;
+		'--offset-left': string;
+		'--mobile-offset-top': string;
+		'--mobile-offset-right': string;
+		'--mobile-offset-bottom': string;
+		'--mobile-offset-left': string;
+	};
+
+	function getOffsetObject(
+		defaultOffset: ToasterProps['offset'],
+		mobileOffset: ToasterProps['mobileOffset']
+	) {
+		const styles = {} as OffsetObject;
+
+		[defaultOffset, mobileOffset].forEach((offset, index) => {
+			const isMobile = index === 1;
+			const prefix = isMobile ? '--mobile-offset' : '--offset';
+			const defaultValue = isMobile
+				? MOBILE_VIEWPORT_OFFSET
+				: VIEWPORT_OFFSET;
+
+			function assignAll(offset: string | number) {
+				['top', 'right', 'bottom', 'left'].forEach((key) => {
+					styles[`${prefix}-${key}` as keyof OffsetObject] =
+						typeof offset === 'number' ? `${offset}px` : offset;
+				});
+			}
+
+			if (typeof offset === 'number' || typeof offset === 'string') {
+				assignAll(offset);
+			} else if (typeof offset === 'object') {
+				['top', 'right', 'bottom', 'left'].forEach((key) => {
+					const value = offset[key as keyof typeof offset];
+					if (value === undefined) {
+						styles[`${prefix}-${key}` as keyof OffsetObject] =
+							defaultValue;
+					} else {
+						styles[`${prefix}-${key}` as keyof OffsetObject] =
+							typeof value === 'number' ? `${value}px` : value;
+					}
+				});
+			} else {
+				assignAll(defaultValue);
+			}
+		});
+
+		return styles;
+	}
 </script>
 
-<script lang="ts">import { onMount, untrack } from 'svelte';
-import { SonnerState, toastState } from './toast-state.svelte';
-import Toast from './Toast.svelte';
-import SuccessIcon from './icons/SuccessIcon.svelte';
-import ErrorIcon from './icons/ErrorIcon.svelte';
-import WarningIcon from './icons/WarningIcon.svelte';
-import InfoIcon from './icons/InfoIcon.svelte';
-import CloseIcon from './icons/CloseIcon.svelte';
-import { sonnerContext } from './internal/ctx.js';
-import { on } from 'svelte/events';
-function getInitialTheme(t) {
-    if (t !== 'system')
-        return t;
-    if (typeof window !== 'undefined') {
-        if (window.matchMedia &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return DARK;
-        }
-        return LIGHT;
-    }
-    return LIGHT;
-}
-let { invert = false, position = 'bottom-right', hotkey = ['altKey', 'KeyT'], expand = false, closeButton = false, offset = VIEWPORT_OFFSET, mobileOffset = MOBILE_VIEWPORT_OFFSET, theme = 'light', richColors = false, duration = TOAST_LIFETIME, visibleToasts = VISIBLE_TOASTS_AMOUNT, toastOptions = {}, dir = 'auto', gap = GAP, pauseWhenPageIsHidden = false, loadingIcon: loadingIconProp, successIcon: successIconProp, errorIcon: errorIconProp, warningIcon: warningIconProp, closeIcon: closeIconProp, infoIcon: infoIconProp, containerAriaLabel = 'Notifications', class: className, closeButtonAriaLabel = 'Close toast', onblur, onfocus, onmouseenter, onmousemove, onmouseleave, ondragend, onpointerdown, onpointerup, ...restProps } = $props();
-function getDocumentDirection() {
-    if (dir !== 'auto')
-        return dir;
-    if (typeof window === 'undefined')
-        return 'ltr';
-    if (typeof document === 'undefined')
-        return 'ltr'; // For Fresh purpose
-    const dirAttribute = document.documentElement.getAttribute('dir');
-    if (dirAttribute === 'auto' || !dirAttribute) {
-        untrack(() => (dir =
-            window.getComputedStyle(document.documentElement)
-                .direction ?? 'ltr'));
-        return dir;
-    }
-    untrack(() => (dir = dirAttribute));
-    return dirAttribute;
-}
-const possiblePositions = $derived.by(() => {
-    const positions = [position];
-    for (const toast of toastState.toasts) {
-        if (toast.position && !positions.includes(toast.position)) {
-            positions.push(toast.position);
-        }
-    }
-    return positions;
-});
-let expandedPosition = $state(null);
-let interactingPosition = $state(null);
-let themeOverride = $state(null);
-const actualTheme = $derived(themeOverride ?? getInitialTheme(theme));
-let listRef = $state();
-let lastFocusedElementRef = $state(null);
-let isFocusWithin = $state(false);
-const hotkeyLabel = $derived(hotkey.join('+').replace(/Key/g, '').replace(/Digit/g, ''));
-$effect(() => {
-    if (toastState.toasts.length <= 1) {
-        expandedPosition = null;
-    }
-});
-// Check for dismissed toasts and remove them. We need to do this to have dismiss animation.
-$effect(() => {
-    let hasDismissed = false;
-    for (const toast of toastState.toasts) {
-        if (toast.dismiss && !toast.delete) {
-            hasDismissed = true;
-            break;
-        }
-    }
-    if (hasDismissed) {
-        toastState.toasts = toastState.toasts.map((toast) => toast.dismiss && !toast.delete ? { ...toast, delete: true } : toast);
-    }
-});
-$effect(() => {
-    return () => {
-        if (listRef && lastFocusedElementRef) {
-            lastFocusedElementRef.focus({ preventScroll: true });
-            lastFocusedElementRef = null;
-            isFocusWithin = false;
-        }
-    };
-});
-onMount(() => {
-    toastState.reset();
-    const handleKeydown = (event) => {
-        const isHotkeyPressed = hotkey.every((key) => 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        event[key] || event.code === key);
-        if (isHotkeyPressed) {
-            expandedPosition = possiblePositions[0] ?? null;
-            listRef?.focus();
-        }
-        if (event.code === 'Escape' &&
-            (document.activeElement === listRef ||
-                listRef?.contains(document.activeElement))) {
-            expandedPosition = null;
-        }
-    };
-    return on(document, 'keydown', handleKeydown);
-});
-$effect(() => {
-    if (theme !== 'system') {
-        themeOverride = theme;
-    }
-    if (typeof window !== 'undefined') {
-        if (theme === 'system') {
-            if (window.matchMedia &&
-                window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                themeOverride = DARK;
-            }
-            else {
-                themeOverride = LIGHT;
-            }
-        }
-        const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
-        const changeHandler = ({ matches }) => {
-            if (theme !== 'system')
-                return;
-            themeOverride = matches ? DARK : LIGHT;
-        };
-        if ('addEventListener' in mediaQueryList) {
-            mediaQueryList.addEventListener('change', changeHandler);
-            return () => mediaQueryList.removeEventListener('change', changeHandler);
-        }
-        else {
-            // @ts-expect-error deprecated API
-            mediaQueryList.addListener(changeHandler);
-            // @ts-expect-error deprecated API
-            return () => mediaQueryList.removeListener(changeHandler);
-        }
-    }
-});
-const handleBlur = (event) => {
-    onblur?.(event);
-    if (isFocusWithin &&
-        !event.currentTarget.contains(event.relatedTarget)) {
-        isFocusWithin = false;
-        if (lastFocusedElementRef) {
-            lastFocusedElementRef.focus({ preventScroll: true });
-            lastFocusedElementRef = null;
-        }
-    }
-};
-const handleFocus = (event) => {
-    onfocus?.(event);
-    const isNotDismissable = event.target instanceof HTMLElement &&
-        event.target.dataset.dismissible === 'false';
-    if (isNotDismissable)
-        return;
-    if (!isFocusWithin) {
-        isFocusWithin = true;
-        lastFocusedElementRef = event.relatedTarget;
-    }
-};
-sonnerContext.set(new SonnerState());
+<script lang="ts">
+	import { onMount, untrack } from 'svelte';
+	import { SonnerState, toastState } from './toast-state.svelte';
+	import Toast from './Toast.svelte';
+	import type { ToasterProps } from './types.js';
+	import type { Position } from './types.js';
+	import type {
+		FocusEventHandler
+	} from 'svelte/elements';
+	import SuccessIcon from './icons/SuccessIcon.svelte';
+	import ErrorIcon from './icons/ErrorIcon.svelte';
+	import WarningIcon from './icons/WarningIcon.svelte';
+	import InfoIcon from './icons/InfoIcon.svelte';
+	import CloseIcon from './icons/CloseIcon.svelte';
+	import { sonnerContext } from './internal/ctx.js';
+	import { on } from 'svelte/events';
+
+	function getInitialTheme(t: string) {
+		if (t !== 'system') return t;
+		if (typeof window !== 'undefined') {
+			if (
+				window.matchMedia &&
+				window.matchMedia('(prefers-color-scheme: dark)').matches
+			) {
+				return DARK;
+			}
+
+			return LIGHT;
+		}
+
+		return LIGHT;
+	}
+
+	let {
+		invert = false,
+		position = 'bottom-right',
+		hotkey = ['altKey', 'KeyT'],
+		expand = false,
+		closeButton = false,
+		offset = VIEWPORT_OFFSET,
+		mobileOffset = MOBILE_VIEWPORT_OFFSET,
+		theme = 'light',
+		richColors = false,
+		duration = TOAST_LIFETIME,
+		visibleToasts = VISIBLE_TOASTS_AMOUNT,
+		toastOptions = {},
+		dir = 'auto',
+		gap = GAP,
+		pauseWhenPageIsHidden = false,
+		loadingIcon: loadingIconProp,
+		successIcon: successIconProp,
+		errorIcon: errorIconProp,
+		warningIcon: warningIconProp,
+		closeIcon: closeIconProp,
+		infoIcon: infoIconProp,
+		containerAriaLabel = 'Notifications',
+		class: className,
+		closeButtonAriaLabel = 'Close toast',
+		onblur,
+		onfocus,
+		onmouseenter,
+		onmousemove,
+		onmouseleave,
+		ondragend,
+		onpointerdown,
+		onpointerup,
+		...restProps
+	}: ToasterProps = $props();
+
+	function getDocumentDirection(): ToasterProps['dir'] {
+		if (dir !== 'auto') return dir;
+		if (typeof window === 'undefined') return 'ltr';
+		if (typeof document === 'undefined') return 'ltr'; // For Fresh purpose
+
+		const dirAttribute = document.documentElement.getAttribute(
+			'dir'
+		) as ToasterProps['dir'];
+
+		if (dirAttribute === 'auto' || !dirAttribute) {
+			untrack(
+				() =>
+					(dir =
+						(window.getComputedStyle(document.documentElement)
+							.direction as ToasterProps['dir']) ?? 'ltr')
+			);
+			return dir;
+		}
+
+		untrack(() => (dir = dirAttribute));
+		return dirAttribute;
+	}
+
+	const possiblePositions = $derived.by(() => {
+		const positions: Position[] = [position];
+		for (const toast of toastState.toasts) {
+			if (toast.position && !positions.includes(toast.position)) {
+				positions.push(toast.position);
+			}
+		}
+		return positions;
+	});
+
+	let expandedPosition = $state<string | null>(null);
+	let interactingPosition = $state<string | null>(null);
+	let themeOverride = $state<string | null>(null);
+	const actualTheme = $derived(themeOverride ?? getInitialTheme(theme));
+	let listRef = $state<HTMLOListElement>();
+	let lastFocusedElementRef = $state<HTMLElement | null>(null);
+	let isFocusWithin = $state(false);
+
+	const hotkeyLabel = $derived(
+		hotkey.join('+').replace(/Key/g, '').replace(/Digit/g, '')
+	);
+
+	$effect(() => {
+		if (toastState.toasts.length <= 1) {
+			expandedPosition = null;
+		}
+	});
+
+	// Check for dismissed toasts and remove them. We need to do this to have dismiss animation.
+	$effect(() => {
+		let hasDismissed = false;
+		for (const toast of toastState.toasts) {
+			if (toast.dismiss && !toast.delete) {
+				hasDismissed = true;
+				break;
+			}
+		}
+
+		if (hasDismissed) {
+			toastState.toasts = toastState.toasts.map((toast) =>
+				toast.dismiss && !toast.delete ? { ...toast, delete: true } : toast
+			);
+		}
+	});
+
+	$effect(() => {
+		return () => {
+			if (listRef && lastFocusedElementRef) {
+				lastFocusedElementRef.focus({ preventScroll: true });
+				lastFocusedElementRef = null;
+				isFocusWithin = false;
+			}
+		};
+	});
+
+	onMount(() => {
+		toastState.reset();
+
+		const handleKeydown = (event: KeyboardEvent) => {
+			const isHotkeyPressed = hotkey.every(
+				(key) =>
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					(event as any)[key] || event.code === key
+			);
+			if (isHotkeyPressed) {
+				expandedPosition = possiblePositions[0] ?? null;
+				listRef?.focus();
+			}
+
+			if (
+				event.code === 'Escape' &&
+				(document.activeElement === listRef ||
+					listRef?.contains(document.activeElement))
+			) {
+				expandedPosition = null;
+			}
+		};
+
+		return on(document, 'keydown', handleKeydown);
+	});
+
+	$effect(() => {
+		if (theme !== 'system') {
+			themeOverride = theme;
+		}
+
+		if (typeof window !== 'undefined') {
+			if (theme === 'system') {
+				if (
+					window.matchMedia &&
+					window.matchMedia('(prefers-color-scheme: dark)').matches
+				) {
+					themeOverride = DARK;
+				} else {
+					themeOverride = LIGHT;
+				}
+			}
+
+			const mediaQueryList = window.matchMedia(
+				'(prefers-color-scheme: dark)'
+			);
+
+			const changeHandler = ({ matches }: MediaQueryListEvent) => {
+				if (theme !== 'system') return;
+				themeOverride = matches ? DARK : LIGHT;
+			};
+
+			if ('addEventListener' in mediaQueryList) {
+				mediaQueryList.addEventListener('change', changeHandler);
+				return () => mediaQueryList.removeEventListener('change', changeHandler);
+			} else {
+				// @ts-expect-error deprecated API
+				mediaQueryList.addListener(changeHandler);
+				// @ts-expect-error deprecated API
+				return () => mediaQueryList.removeListener(changeHandler);
+			}
+		}
+	});
+
+	const handleBlur: FocusEventHandler<HTMLOListElement> = (event) => {
+		onblur?.(event);
+		if (
+			isFocusWithin &&
+			!event.currentTarget.contains(event.relatedTarget as HTMLElement)
+		) {
+			isFocusWithin = false;
+			if (lastFocusedElementRef) {
+				lastFocusedElementRef.focus({ preventScroll: true });
+				lastFocusedElementRef = null;
+			}
+		}
+	};
+
+	const handleFocus: FocusEventHandler<HTMLOListElement> = (event) => {
+		onfocus?.(event);
+		const isNotDismissable =
+			event.target instanceof HTMLElement &&
+			event.target.dataset.dismissible === 'false';
+
+		if (isNotDismissable) return;
+
+		if (!isFocusWithin) {
+			isFocusWithin = true;
+			lastFocusedElementRef = event.relatedTarget as HTMLElement;
+		}
+	};
+
+
+	sonnerContext.set(new SonnerState());
 </script>
 
 <!-- eslint-disable-next-line svelte/valid-compile -->
@@ -339,8 +445,8 @@ sonnerContext.set(new SonnerState());
 </section>
 
 <style global>
-	:global(html[dir='ltr']),
-	:global([data-sonner-toaster][dir='ltr']) {
+	html[dir='ltr'],
+	[data-sonner-toaster][dir='ltr'] {
 		--toast-icon-margin-start: -3px;
 		--toast-icon-margin-end: 4px;
 		--toast-svg-margin-start: -1px;
@@ -352,8 +458,8 @@ sonnerContext.set(new SonnerState());
 		--toast-close-button-transform: translate(-35%, -35%);
 	}
 
-	:global(html[dir='rtl']),
-	:global([data-sonner-toaster][dir='rtl']) {
+	html[dir='rtl'],
+	[data-sonner-toaster][dir='rtl'] {
 		--toast-icon-margin-start: 4px;
 		--toast-icon-margin-end: -3px;
 		--toast-svg-margin-start: 0px;
@@ -365,7 +471,7 @@ sonnerContext.set(new SonnerState());
 		--toast-close-button-transform: translate(35%, -35%);
 	}
 
-	:global([data-sonner-toaster]) {
+	[data-sonner-toaster] {
 		position: fixed;
 		width: var(--width);
 		font-family:
@@ -406,33 +512,33 @@ sonnerContext.set(new SonnerState());
 	}
 
 	@media (hover: none) and (pointer: coarse) {
-		:global([data-sonner-toaster][data-lifted='true']) {
+		[data-sonner-toaster][data-lifted='true'] {
 			transform: none;
 		}
 	}
 
-	:global([data-sonner-toaster][data-x-position='right']) {
+	[data-sonner-toaster][data-x-position='right'] {
 		right: var(--offset-right);
 	}
 
-	:global([data-sonner-toaster][data-x-position='left']) {
+	[data-sonner-toaster][data-x-position='left'] {
 		left: var(--offset-left);
 	}
 
-	:global([data-sonner-toaster][data-x-position='center']) {
+	[data-sonner-toaster][data-x-position='center'] {
 		left: 50%;
 		transform: translateX(-50%);
 	}
 
-	:global([data-sonner-toaster][data-y-position='top']) {
+	[data-sonner-toaster][data-y-position='top'] {
 		top: var(--offset-top);
 	}
 
-	:global([data-sonner-toaster][data-y-position='bottom']) {
+	[data-sonner-toaster][data-y-position='bottom'] {
 		bottom: var(--offset-bottom);
 	}
 
-	:global([data-sonner-toast]) {
+	[data-sonner-toast] {
 		--y: translateY(100%);
 		--lift-amount: calc(var(--lift) * var(--gap));
 		z-index: var(--z-index);
@@ -450,7 +556,7 @@ sonnerContext.set(new SonnerState());
 		overflow-wrap: anywhere;
 	}
 
-	:global([data-sonner-toast][data-styled='true']) {
+	[data-sonner-toast][data-styled='true'] {
 		padding: 16px;
 		background: var(--normal-bg);
 		border: 1px solid var(--normal-border);
@@ -464,48 +570,48 @@ sonnerContext.set(new SonnerState());
 		gap: 6px;
 	}
 
-	:global([data-sonner-toast]:focus-visible) {
+	[data-sonner-toast]:focus-visible {
 		box-shadow:
 			0px 4px 12px rgba(0, 0, 0, 0.1),
 			0 0 0 2px rgba(0, 0, 0, 0.2);
 	}
 
-	:global([data-sonner-toast][data-y-position='top']) {
+	[data-sonner-toast][data-y-position='top'] {
 		top: 0;
 		--y: translateY(-100%);
 		--lift: 1;
 		--lift-amount: calc(1 * var(--gap));
 	}
 
-	:global([data-sonner-toast][data-y-position='bottom']) {
+	[data-sonner-toast][data-y-position='bottom'] {
 		bottom: 0;
 		--y: translateY(100%);
 		--lift: -1;
 		--lift-amount: calc(var(--lift) * var(--gap));
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-description]) {
+	[data-sonner-toast][data-styled='true'] [data-description] {
 		font-weight: 400;
 		line-height: 1.4;
 		color: #3f3f3f;
 	}
 
-	:global([data-rich-colors='true'][data-sonner-toast][data-styled='true']
-		[data-description]) {
+	[data-rich-colors='true'][data-sonner-toast][data-styled='true']
+		[data-description] {
 		color: inherit;
 	}
 
-	:global([data-sonner-toaster][data-sonner-theme='dark']) :global([data-description]) {
+	[data-sonner-toaster][data-sonner-theme='dark'] [data-description] {
 		color: hsl(0, 0%, 91%);
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-title]) {
+	[data-sonner-toast][data-styled='true'] [data-title] {
 		font-weight: 500;
 		line-height: 1.5;
 		color: inherit;
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-icon]) {
+	[data-sonner-toast][data-styled='true'] [data-icon] {
 		display: flex;
 		height: 16px;
 		width: 16px;
@@ -517,29 +623,29 @@ sonnerContext.set(new SonnerState());
 		margin-right: var(--toast-icon-margin-end);
 	}
 
-	:global([data-sonner-toast][data-promise='true']) :global([data-icon]) > :global(svg) {
+	[data-sonner-toast][data-promise='true'] [data-icon] > svg {
 		opacity: 0;
 		transform: scale(0.8);
 		transform-origin: center;
 		animation: sonner-fade-in 300ms ease forwards;
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-icon]) > :global(*) {
+	[data-sonner-toast][data-styled='true'] [data-icon] > * {
 		flex-shrink: 0;
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-icon]) :global(svg) {
+	[data-sonner-toast][data-styled='true'] [data-icon] svg {
 		margin-left: var(--toast-svg-margin-start);
 		margin-right: var(--toast-svg-margin-end);
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-content]) {
+	[data-sonner-toast][data-styled='true'] [data-content] {
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-button]) {
+	[data-sonner-toast][data-styled='true'] [data-button] {
 		border-radius: 4px;
 		padding-left: 8px;
 		padding-right: 8px;
@@ -561,27 +667,27 @@ sonnerContext.set(new SonnerState());
 			box-shadow 200ms;
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-button]:focus-visible) {
+	[data-sonner-toast][data-styled='true'] [data-button]:focus-visible {
 		box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4);
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-button]:first-of-type) {
+	[data-sonner-toast][data-styled='true'] [data-button]:first-of-type {
 		margin-left: var(--toast-button-margin-start);
 		margin-right: var(--toast-button-margin-end);
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-cancel]) {
+	[data-sonner-toast][data-styled='true'] [data-cancel] {
 		color: var(--normal-text);
 		background: rgba(0, 0, 0, 0.08);
 	}
 
-	:global([data-sonner-toaster][data-sonner-theme='dark']
+	[data-sonner-toaster][data-sonner-theme='dark']
 		[data-sonner-toast][data-styled='true']
-		[data-cancel]) {
+		[data-cancel] {
 		background: rgba(255, 255, 255, 0.3);
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-close-button]) {
+	[data-sonner-toast][data-styled='true'] [data-close-button] {
 		position: absolute;
 		left: var(--toast-close-button-start);
 		right: var(--toast-close-button-end);
@@ -605,22 +711,22 @@ sonnerContext.set(new SonnerState());
 			border-color 200ms;
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-close-button]:focus-visible) {
+	[data-sonner-toast][data-styled='true'] [data-close-button]:focus-visible {
 		box-shadow:
 			0px 4px 12px rgba(0, 0, 0, 0.1),
 			0 0 0 2px rgba(0, 0, 0, 0.2);
 	}
 
-	:global([data-sonner-toast][data-styled='true']) :global([data-disabled='true']) {
+	[data-sonner-toast][data-styled='true'] [data-disabled='true'] {
 		cursor: not-allowed;
 	}
 
-	:global([data-sonner-toast][data-styled='true']:hover) :global([data-close-button]:hover) {
+	[data-sonner-toast][data-styled='true']:hover [data-close-button]:hover {
 		background: var(--gray2);
 		border-color: var(--gray5);
 	}
 
-	:global([data-sonner-toast][data-swiping='true']::before) {
+	[data-sonner-toast][data-swiping='true']::before {
 		content: '';
 		position: absolute;
 		left: -100%;
@@ -629,24 +735,24 @@ sonnerContext.set(new SonnerState());
 		z-index: -1;
 	}
 
-	:global([data-sonner-toast][data-y-position='top'][data-swiping='true']::before) {
+	[data-sonner-toast][data-y-position='top'][data-swiping='true']::before {
 		bottom: 50%;
 		transform: scaleY(3) translateY(50%);
 	}
 
-	:global([data-sonner-toast][data-y-position='bottom'][data-swiping='true']::before) {
+	[data-sonner-toast][data-y-position='bottom'][data-swiping='true']::before {
 		top: 50%;
 		transform: scaleY(3) translateY(-50%);
 	}
 
-	:global([data-sonner-toast][data-swiping='false'][data-removed='true']::before) {
+	[data-sonner-toast][data-swiping='false'][data-removed='true']::before {
 		content: '';
 		position: absolute;
 		inset: 0;
 		transform: scaleY(2);
 	}
 
-	:global([data-sonner-toast][data-expanded='true']::after) {
+	[data-sonner-toast][data-expanded='true']::after {
 		content: '';
 		position: absolute;
 		left: 0;
@@ -655,58 +761,58 @@ sonnerContext.set(new SonnerState());
 		width: 100%;
 	}
 
-	:global([data-sonner-toast][data-mounted='true']) {
+	[data-sonner-toast][data-mounted='true'] {
 		--y: translateY(0);
 		opacity: 1;
 	}
 
-	:global([data-sonner-toast][data-expanded='false'][data-front='false']) {
+	[data-sonner-toast][data-expanded='false'][data-front='false'] {
 		--scale: var(--toasts-before) * 0.05 + 1;
 		--y: translateY(calc(var(--lift-amount) * var(--toasts-before)))
 			scale(calc(-1 * var(--scale)));
 		height: var(--front-toast-height);
 	}
 
-	:global([data-sonner-toast]) > :global(*) {
+	[data-sonner-toast] > * {
 		transition: opacity 400ms;
 	}
 
-	:global([data-sonner-toast][data-x-position='right']) {
+	[data-sonner-toast][data-x-position='right'] {
 		right: 0;
 	}
 
-	:global([data-sonner-toast][data-x-position='left']) {
+	[data-sonner-toast][data-x-position='left'] {
 		left: 0;
 	}
 
-	:global([data-sonner-toast][data-expanded='false'][data-front='false'][data-styled='true']
-		)> :global(*) {
+	[data-sonner-toast][data-expanded='false'][data-front='false'][data-styled='true']
+		> * {
 		opacity: 0;
 	}
 
-	:global([data-sonner-toast][data-visible='false']) {
+	[data-sonner-toast][data-visible='false'] {
 		opacity: 0;
 		pointer-events: none;
 	}
 
-	:global([data-sonner-toast][data-mounted='true'][data-expanded='true']) {
+	[data-sonner-toast][data-mounted='true'][data-expanded='true'] {
 		--y: translateY(calc(var(--lift) * var(--offset)));
 		height: var(--initial-height);
 	}
 
-	:global([data-sonner-toast][data-removed='true'][data-front='true'][data-swipe-out='false']) {
+	[data-sonner-toast][data-removed='true'][data-front='true'][data-swipe-out='false'] {
 		--y: translateY(calc(var(--lift) * -100%));
 		opacity: 0;
 	}
 
-	:global([data-sonner-toast][data-removed='true'][data-front='false'][data-swipe-out='false'][data-expanded='true']) {
+	[data-sonner-toast][data-removed='true'][data-front='false'][data-swipe-out='false'][data-expanded='true'] {
 		--y: translateY(
 			calc(var(--lift) * var(--offset) + var(--lift) * -100%)
 		);
 		opacity: 0;
 	}
 
-	:global([data-sonner-toast][data-removed='true'][data-front='false'][data-swipe-out='false'][data-expanded='false']) {
+	[data-sonner-toast][data-removed='true'][data-front='false'][data-swipe-out='false'][data-expanded='false'] {
 		--y: translateY(40%);
 		opacity: 0;
 		transition:
@@ -714,44 +820,44 @@ sonnerContext.set(new SonnerState());
 			opacity 200ms;
 	}
 
-	:global([data-sonner-toast][data-removed='true'][data-front='false']::before) {
+	[data-sonner-toast][data-removed='true'][data-front='false']::before {
 		height: calc(var(--initial-height) + 20%);
 	}
 
-	:global([data-sonner-toast][data-swiping='true']) {
+	[data-sonner-toast][data-swiping='true'] {
 		transform: var(--y) translateY(var(--swipe-amount-y, 0px))
 			translateX(var(--swipe-amount-x, 0px));
 		transition: none;
 	}
 
-	:global([data-sonner-toast][data-swiped='true']) {
+	[data-sonner-toast][data-swiped='true'] {
 		user-select: none;
 	}
 
-	:global([data-sonner-toast][data-swipe-out='true'][data-y-position='bottom']),
-	:global([data-sonner-toast][data-swipe-out='true'][data-y-position='top']) {
+	[data-sonner-toast][data-swipe-out='true'][data-y-position='bottom'],
+	[data-sonner-toast][data-swipe-out='true'][data-y-position='top'] {
 		animation-duration: 200ms;
 		animation-timing-function: ease-out;
 		animation-fill-mode: forwards;
 	}
 
-	:global([data-sonner-toast][data-swipe-out='true'][data-swipe-direction='left']) {
+	[data-sonner-toast][data-swipe-out='true'][data-swipe-direction='left'] {
 		animation-name: swipe-out-left;
 	}
 
-	:global([data-sonner-toast][data-swipe-out='true'][data-swipe-direction='right']) {
+	[data-sonner-toast][data-swipe-out='true'][data-swipe-direction='right'] {
 		animation-name: swipe-out-right;
 	}
 
-	:global([data-sonner-toast][data-swipe-out='true'][data-swipe-direction='up']) {
+	[data-sonner-toast][data-swipe-out='true'][data-swipe-direction='up'] {
 		animation-name: swipe-out-up;
 	}
 
-	:global([data-sonner-toast][data-swipe-out='true'][data-swipe-direction='down']) {
+	[data-sonner-toast][data-swipe-out='true'][data-swipe-direction='down'] {
 		animation-name: swipe-out-down;
 	}
 
-	@keyframes -global-swipe-out-left {
+	@keyframes swipe-out-left {
 		from {
 			transform: var(--y) translateX(var(--swipe-amount-x));
 			opacity: 1;
@@ -763,7 +869,7 @@ sonnerContext.set(new SonnerState());
 		}
 	}
 
-	@keyframes -global-swipe-out-right {
+	@keyframes swipe-out-right {
 		from {
 			transform: var(--y) translateX(var(--swipe-amount-x));
 			opacity: 1;
@@ -775,7 +881,7 @@ sonnerContext.set(new SonnerState());
 		}
 	}
 
-	@keyframes -global-swipe-out-up {
+	@keyframes swipe-out-up {
 		from {
 			transform: var(--y) translateY(var(--swipe-amount-y));
 			opacity: 1;
@@ -787,7 +893,7 @@ sonnerContext.set(new SonnerState());
 		}
 	}
 
-	@keyframes -global-swipe-out-down {
+	@keyframes swipe-out-down {
 		from {
 			transform: var(--y) translateY(var(--swipe-amount-y));
 			opacity: 1;
@@ -800,43 +906,43 @@ sonnerContext.set(new SonnerState());
 	}
 
 	@media (max-width: 600px) {
-		:global([data-sonner-toaster]) {
+		[data-sonner-toaster] {
 			position: fixed;
 			right: var(--mobile-offset-right);
 			left: var(--mobile-offset-left);
 			width: 100%;
 		}
 
-		:global([data-sonner-toaster][dir='rtl']) {
+		[data-sonner-toaster][dir='rtl'] {
 			left: calc(var(--mobile-offset-left) * -1);
 		}
 
-		:global([data-sonner-toaster]) :global([data-sonner-toast]) {
+		[data-sonner-toaster] [data-sonner-toast] {
 			left: 0;
 			right: 0;
 			width: calc(100% - var(--mobile-offset-left) * 2);
 		}
 
-		:global([data-sonner-toaster][data-x-position='left']) {
+		[data-sonner-toaster][data-x-position='left'] {
 			left: var(--mobile-offset-left);
 		}
 
-		:global([data-sonner-toaster][data-y-position='bottom']) {
+		[data-sonner-toaster][data-y-position='bottom'] {
 			bottom: var(--mobile-offset-bottom);
 		}
 
-		:global([data-sonner-toaster][data-y-position='top']) {
+		[data-sonner-toaster][data-y-position='top'] {
 			top: var(--mobile-offset-top);
 		}
 
-		:global([data-sonner-toaster][data-x-position='center']) {
+		[data-sonner-toaster][data-x-position='center'] {
 			left: var(--mobile-offset-left);
 			right: var(--mobile-offset-right);
 			transform: none;
 		}
 	}
 
-	:global([data-sonner-toaster][data-sonner-theme='light']) {
+	[data-sonner-toaster][data-sonner-theme='light'] {
 		--normal-bg: #fff;
 		--normal-border: var(--gray4);
 		--normal-text: var(--gray12);
@@ -858,21 +964,21 @@ sonnerContext.set(new SonnerState());
 		--error-text: hsl(360, 100%, 45%);
 	}
 
-	:global([data-sonner-toaster][data-sonner-theme='light']
-		[data-sonner-toast][data-invert='true']) {
+	[data-sonner-toaster][data-sonner-theme='light']
+		[data-sonner-toast][data-invert='true'] {
 		--normal-bg: #000;
 		--normal-border: hsl(0, 0%, 20%);
 		--normal-text: var(--gray1);
 	}
 
-	:global([data-sonner-toaster][data-sonner-theme='dark']
-		[data-sonner-toast][data-invert='true']) {
+	[data-sonner-toaster][data-sonner-theme='dark']
+		[data-sonner-toast][data-invert='true'] {
 		--normal-bg: #fff;
 		--normal-border: var(--gray3);
 		--normal-text: var(--gray12);
 	}
 
-	:global([data-sonner-toaster][data-sonner-theme='dark']) {
+	[data-sonner-toaster][data-sonner-theme='dark'] {
 		--normal-bg: #000;
 		--normal-bg-hover: hsl(0, 0%, 12%);
 		--normal-border: hsl(0, 0%, 20%);
@@ -896,74 +1002,74 @@ sonnerContext.set(new SonnerState());
 		--error-text: hsl(358, 100%, 81%);
 	}
 
-	:global([data-sonner-toaster][data-sonner-theme='dark']
+	[data-sonner-toaster][data-sonner-theme='dark']
 		[data-sonner-toast]
-		[data-close-button]) {
+		[data-close-button] {
 		background: var(--normal-bg);
 		border-color: var(--normal-border);
 		color: var(--normal-text);
 	}
 
-	:global([data-sonner-toaster][data-sonner-theme='dark']
+	[data-sonner-toaster][data-sonner-theme='dark']
 		[data-sonner-toast]
-		[data-close-button]:hover) {
+		[data-close-button]:hover {
 		background: var(--normal-bg-hover);
 		border-color: var(--normal-border-hover);
 	}
 
-	:global([data-rich-colors='true'][data-sonner-toast][data-type='success']) {
+	[data-rich-colors='true'][data-sonner-toast][data-type='success'] {
 		background: var(--success-bg);
 		border-color: var(--success-border);
 		color: var(--success-text);
 	}
 
-	:global([data-rich-colors='true'][data-sonner-toast][data-type='success']
-		[data-close-button]) {
+	[data-rich-colors='true'][data-sonner-toast][data-type='success']
+		[data-close-button] {
 		background: var(--success-bg);
 		border-color: var(--success-border);
 		color: var(--success-text);
 	}
 
-	:global([data-rich-colors='true'][data-sonner-toast][data-type='info']) {
+	[data-rich-colors='true'][data-sonner-toast][data-type='info'] {
 		background: var(--info-bg);
 		border-color: var(--info-border);
 		color: var(--info-text);
 	}
 
-	:global([data-rich-colors='true'][data-sonner-toast][data-type='info']
-		[data-close-button]) {
+	[data-rich-colors='true'][data-sonner-toast][data-type='info']
+		[data-close-button] {
 		background: var(--info-bg);
 		border-color: var(--info-border);
 		color: var(--info-text);
 	}
 
-	:global([data-rich-colors='true'][data-sonner-toast][data-type='warning']) {
+	[data-rich-colors='true'][data-sonner-toast][data-type='warning'] {
 		background: var(--warning-bg);
 		border-color: var(--warning-border);
 		color: var(--warning-text);
 	}
 
-	:global([data-rich-colors='true'][data-sonner-toast][data-type='warning']
-		[data-close-button]) {
+	[data-rich-colors='true'][data-sonner-toast][data-type='warning']
+		[data-close-button] {
 		background: var(--warning-bg);
 		border-color: var(--warning-border);
 		color: var(--warning-text);
 	}
 
-	:global([data-rich-colors='true'][data-sonner-toast][data-type='error']) {
+	[data-rich-colors='true'][data-sonner-toast][data-type='error'] {
 		background: var(--error-bg);
 		border-color: var(--error-border);
 		color: var(--error-text);
 	}
 
-	:global([data-rich-colors='true'][data-sonner-toast][data-type='error']
-		[data-close-button]) {
+	[data-rich-colors='true'][data-sonner-toast][data-type='error']
+		[data-close-button] {
 		background: var(--error-bg);
 		border-color: var(--error-border);
 		color: var(--error-text);
 	}
 
-	:global(.sonner-loading-wrapper) {
+	.sonner-loading-wrapper {
 		--size: 16px;
 		height: var(--size);
 		width: var(--size);
@@ -972,12 +1078,12 @@ sonnerContext.set(new SonnerState());
 		z-index: 10;
 	}
 
-	:global(.sonner-loading-wrapper[data-visible='false']) {
+	.sonner-loading-wrapper[data-visible='false'] {
 		transform-origin: center;
 		animation: sonner-fade-out 0.2s ease forwards;
 	}
 
-	:global(.sonner-spinner) {
+	.sonner-spinner {
 		position: relative;
 		top: 50%;
 		left: 50%;
@@ -985,7 +1091,7 @@ sonnerContext.set(new SonnerState());
 		width: var(--size);
 	}
 
-	:global(.sonner-loading-bar) {
+	.sonner-loading-bar {
 		animation: sonner-spin 1.2s linear infinite;
 		background: var(--gray11);
 		border-radius: 6px;
@@ -996,67 +1102,67 @@ sonnerContext.set(new SonnerState());
 		width: 24%;
 	}
 
-	:global(.sonner-loading-bar:nth-child(1)) {
+	.sonner-loading-bar:nth-child(1) {
 		animation-delay: -1.2s;
 		transform: rotate(0.0001deg) translate(146%);
 	}
 
-	:global(.sonner-loading-bar:nth-child(2)) {
+	.sonner-loading-bar:nth-child(2) {
 		animation-delay: -1.1s;
 		transform: rotate(30deg) translate(146%);
 	}
 
-	:global(.sonner-loading-bar:nth-child(3)) {
+	.sonner-loading-bar:nth-child(3) {
 		animation-delay: -1s;
 		transform: rotate(60deg) translate(146%);
 	}
 
-	:global(.sonner-loading-bar:nth-child(4)) {
+	.sonner-loading-bar:nth-child(4) {
 		animation-delay: -0.9s;
 		transform: rotate(90deg) translate(146%);
 	}
 
-	:global(.sonner-loading-bar:nth-child(5)) {
+	.sonner-loading-bar:nth-child(5) {
 		animation-delay: -0.8s;
 		transform: rotate(120deg) translate(146%);
 	}
 
-	:global(.sonner-loading-bar:nth-child(6)) {
+	.sonner-loading-bar:nth-child(6) {
 		animation-delay: -0.7s;
 		transform: rotate(150deg) translate(146%);
 	}
 
-	:global(.sonner-loading-bar:nth-child(7)) {
+	.sonner-loading-bar:nth-child(7) {
 		animation-delay: -0.6s;
 		transform: rotate(180deg) translate(146%);
 	}
 
-	:global(.sonner-loading-bar:nth-child(8)) {
+	.sonner-loading-bar:nth-child(8) {
 		animation-delay: -0.5s;
 		transform: rotate(210deg) translate(146%);
 	}
 
-	:global(.sonner-loading-bar:nth-child(9)) {
+	.sonner-loading-bar:nth-child(9) {
 		animation-delay: -0.4s;
 		transform: rotate(240deg) translate(146%);
 	}
 
-	:global(.sonner-loading-bar:nth-child(10)) {
+	.sonner-loading-bar:nth-child(10) {
 		animation-delay: -0.3s;
 		transform: rotate(270deg) translate(146%);
 	}
 
-	:global(.sonner-loading-bar:nth-child(11)) {
+	.sonner-loading-bar:nth-child(11) {
 		animation-delay: -0.2s;
 		transform: rotate(300deg) translate(146%);
 	}
 
-	:global(.sonner-loading-bar:nth-child(12)) {
+	.sonner-loading-bar:nth-child(12) {
 		animation-delay: -0.1s;
 		transform: rotate(330deg) translate(146%);
 	}
 
-	@keyframes -global-sonner-fade-in {
+	@keyframes sonner-fade-in {
 		0% {
 			opacity: 0;
 			transform: scale(0.8);
@@ -1067,7 +1173,7 @@ sonnerContext.set(new SonnerState());
 		}
 	}
 
-	@keyframes -global-sonner-fade-out {
+	@keyframes sonner-fade-out {
 		0% {
 			opacity: 1;
 			transform: scale(1);
@@ -1078,7 +1184,7 @@ sonnerContext.set(new SonnerState());
 		}
 	}
 
-	@keyframes -global-sonner-spin {
+	@keyframes sonner-spin {
 		0% {
 			opacity: 1;
 		}
@@ -1088,15 +1194,15 @@ sonnerContext.set(new SonnerState());
 	}
 
 	@media (prefers-reduced-motion) {
-		:global([data-sonner-toast]),
-		:global([data-sonner-toast]) > :global(*),
-		:global(.sonner-loading-bar) {
+		[data-sonner-toast],
+		[data-sonner-toast] > *,
+		.sonner-loading-bar {
 			transition: none !important;
 			animation: none !important;
 		}
 	}
 
-	:global(.sonner-loader) {
+	.sonner-loader {
 		position: absolute;
 		top: 50%;
 		left: 50%;
@@ -1107,7 +1213,7 @@ sonnerContext.set(new SonnerState());
 			transform 200ms;
 	}
 
-	:global(.sonner-loader[data-visible='false']) {
+	.sonner-loader[data-visible='false'] {
 		opacity: 0;
 		transform: scale(0.8) translate(-50%, -50%);
 	}
