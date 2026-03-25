@@ -70,32 +70,42 @@ test('render custom component with properties in toast of predefined type', asyn
 
 test('toast with description shows description text', async ({ page }) => {
 	await page.getByTestId('Description').click();
-	await expect(page.getByText('Event has been created')).toHaveCount(1);
-	await expect(page.getByText('Monday, January 3rd at 6:00pm')).toHaveCount(1);
+	const toast = page.locator('[data-sonner-toast]');
+	await expect(toast).toHaveCount(1);
+	await expect(toast.getByText('Event has been created')).toBeVisible();
+	await expect(toast.getByText('Monday, January 3rd at 6:00pm')).toBeVisible();
 });
 
 test('info toast is rendered correctly', async ({ page }) => {
 	await page.getByTestId('Info').click();
-	await expect(page.getByText('Event will be created')).toHaveCount(1);
-	await expect(page.locator('[data-sonner-toast][data-type="info"]')).toHaveCount(1);
+	const toast = page.locator('[data-sonner-toast]');
+	await expect(toast).toHaveCount(1);
+	await expect(toast.getByText('Event will be created')).toBeVisible();
+	await expect(toast).toHaveAttribute('data-type', 'info');
 });
 
 test('warning toast is rendered correctly', async ({ page }) => {
 	await page.getByTestId('Warning').click();
-	await expect(page.getByText('Event has warnings')).toHaveCount(1);
-	await expect(page.locator('[data-sonner-toast][data-type="warning"]')).toHaveCount(1);
+	const toast = page.locator('[data-sonner-toast]');
+	await expect(toast).toHaveCount(1);
+	await expect(toast.getByText('Event has warnings')).toBeVisible();
+	await expect(toast).toHaveAttribute('data-type', 'warning');
 });
 
 test('rich colors success toast has rich colors attribute', async ({ page }) => {
 	await page.getByTestId('other-Rich Colors Success').click();
-	await expect(page.getByText('Event has been created')).toHaveCount(1);
-	await expect(page.locator('[data-sonner-toast][data-rich-colors="true"]')).toHaveCount(1);
+	const toast = page.locator('[data-sonner-toast]');
+	await expect(toast).toHaveCount(1);
+	await expect(toast.getByText('Event has been created')).toBeVisible();
+	await expect(toast).toHaveAttribute('data-rich-colors', 'true');
 });
 
 test('rich colors error toast has rich colors attribute', async ({ page }) => {
 	await page.getByTestId('other-Rich Colors Error').click();
-	await expect(page.getByText('Event has not been created')).toHaveCount(1);
-	await expect(page.locator('[data-sonner-toast][data-rich-colors="true"]')).toHaveCount(1);
+	const toast = page.locator('[data-sonner-toast]');
+	await expect(toast).toHaveCount(1);
+	await expect(toast.getByText('Event has not been created')).toBeVisible();
+	await expect(toast).toHaveAttribute('data-rich-colors', 'true');
 });
 
 test('close button is rendered when enabled', async ({ page }) => {
