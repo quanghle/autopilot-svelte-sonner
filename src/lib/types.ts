@@ -47,7 +47,12 @@ export type ToastAction = {
 };
 
 export function isAction(action: ToastAction | AnyComponent | undefined): action is ToastAction {
-	return (action as ToastAction).label !== undefined;
+	return (
+		action !== undefined &&
+		typeof action === 'object' &&
+		'label' in action &&
+		'onClick' in action
+	);
 }
 
 export type ToastT<T extends AnyComponent = AnyComponent> = {

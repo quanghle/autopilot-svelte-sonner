@@ -46,6 +46,29 @@
 		const factor = Math.abs(delta) / 20;
 		return 1 / (1.5 + factor);
 	}
+
+	/**
+	 * Calculates the swipe amount for one axis.
+	 * Returns the full delta if swiping in an allowed direction,
+	 * a dampened delta if swiping against the allowed direction,
+	 * or 0 if swiping is not allowed on this axis.
+	 */
+	function calculateSwipeAmount(
+		delta: number,
+		allowNegative: boolean,
+		allowPositive: boolean
+	): number {
+		if (!allowNegative && !allowPositive) return 0;
+
+		if ((allowNegative && delta < 0) || (allowPositive && delta > 0)) {
+			return delta;
+		}
+
+		// Dampened movement in the non-allowed direction
+		const dampenedDelta = delta * getSwipeDampening(delta);
+		// Ensure we don't jump when transitioning to dampened movement
+		return Math.abs(dampenedDelta) < Math.abs(delta) ? dampenedDelta : delta;
+	}
 </script>
 
 <script lang="ts">
@@ -356,47 +379,18 @@
 
 		let swipeAmount = { x: 0, y: 0 };
 
-		const allowTop = swipeDirections.includes('top');
-		const allowBottom = swipeDirections.includes('bottom');
-		const allowLeft = swipeDirections.includes('left');
-		const allowRight = swipeDirections.includes('right');
-
 		if (swipeDirection === 'y') {
-			// handle vertical swipes
-			if (allowTop || allowBottom) {
-				if (
-					(allowTop && yDelta < 0) ||
-					(allowBottom && yDelta > 0)
-				) {
-					swipeAmount.y = yDelta;
-				} else {
-					// smoothly transition to dampened movement
-					const dampenedDelta = yDelta * getSwipeDampening(yDelta);
-					// ensure we don't jump when transition to dampened movement
-					swipeAmount.y =
-						Math.abs(dampenedDelta) < Math.abs(yDelta)
-							? dampenedDelta
-							: yDelta;
-				}
-			}
+			swipeAmount.y = calculateSwipeAmount(
+				yDelta,
+				swipeDirections.includes('top'),
+				swipeDirections.includes('bottom')
+			);
 		} else if (swipeDirection === 'x') {
-			// handle horizontal swipes
-			if (allowLeft || allowRight) {
-				if (
-					(allowLeft && xDelta < 0) ||
-					(allowRight && xDelta > 0)
-				) {
-					swipeAmount.x = xDelta;
-				} else {
-					// Smoothly transition to dampened movement
-					const dampenedDelta = xDelta * getSwipeDampening(xDelta);
-					// Ensure we don't jump when transitioning to dampened movement
-					swipeAmount.x =
-						Math.abs(dampenedDelta) < Math.abs(xDelta)
-							? dampenedDelta
-							: xDelta;
-				}
-			}
+			swipeAmount.x = calculateSwipeAmount(
+				xDelta,
+				swipeDirections.includes('left'),
+				swipeDirections.includes('right')
+			);
 		}
 
 		if (Math.abs(swipeAmount.x) > 0 || Math.abs(swipeAmount.y) > 0) {
@@ -506,25 +500,18 @@
 	{:else}
 		{#if (toastType || toast.icon || toast.promise) && toast.icon !== null && (icon !== null || toast.icon)}
 			<div data-icon="" class={cn(classes?.icon, toast?.classes?.icon)}>
-				{#if toast.promise || toastType === 'loading'}
-					{#if toast.icon}
-						<toast.icon />
-					{:else}
-						{@render LoadingIcon()}
-					{/if}
-				{/if}
-				{#if toast.type !== 'loading'}
-					{#if toast.icon}
-						<toast.icon />
-					{:else if toastType === 'success'}
-						{@render successIcon?.()}
-					{:else if toastType === 'error'}
-						{@render errorIcon?.()}
-					{:else if toastType === 'warning'}
-						{@render warningIcon?.()}
-					{:else if toastType === 'info'}
-						{@render infoIcon?.()}
-					{/if}
+				{#if toast.icon}
+					<toast.icon />
+				{:else if toast.promise || toastType === 'loading'}
+					{@render LoadingIcon()}
+				{:else if toastType === 'success'}
+					{@render successIcon?.()}
+				{:else if toastType === 'error'}
+					{@render errorIcon?.()}
+				{:else if toastType === 'warning'}
+					{@render warningIcon?.()}
+				{:else if toastType === 'info'}
+					{@render infoIcon?.()}
 				{/if}
 			</div>
 		{/if}
