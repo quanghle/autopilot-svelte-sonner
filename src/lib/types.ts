@@ -2,8 +2,6 @@ import type { Component, ComponentProps, Snippet } from 'svelte';
 import type { Expand } from '$lib/internal/types.js';
 import type { HTMLAttributes, HTMLOlAttributes, MouseEventHandler } from 'svelte/elements';
 
-export type FixMe = unknown;
-
 // We need this to consistently be this wide.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyComponent = Component<any, any, string>;
@@ -49,7 +47,7 @@ export type ToastAction = {
 };
 
 export function isAction(action: ToastAction | AnyComponent | undefined): action is ToastAction {
-	return (action as ToastAction).label !== undefined;
+	return action !== undefined && typeof action === 'object' && 'label' in action;
 }
 
 export type ToastT<T extends AnyComponent = AnyComponent> = {
@@ -105,11 +103,6 @@ export type HeightT = {
 };
 
 export type Theme = 'light' | 'dark';
-
-export type ToastToDismiss = {
-	id: number | string;
-	dismiss: boolean;
-};
 
 export type ExternalToast<T extends AnyComponent = AnyComponent> = Omit<
 	ToastT<T>,
@@ -252,7 +245,7 @@ export type ToasterProps = {
 	/**
 	 * Offset from the edges of the screen.
 	 *
-	 * @default '32px'
+	 * @default '24px'
 	 */
 	offset?: Offset;
 

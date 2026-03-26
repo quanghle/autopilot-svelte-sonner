@@ -135,17 +135,16 @@ toast.success('Toast has been updated', {
 
 ### Headless
 
-You can use `toast.custom` to render an unstyled toast with custom component while maintaining the functionality.
+You can use `toast.custom` to render an unstyled toast with custom component while maintaining the functionality. The component receives a `closeToast` prop you can call to dismiss it.
 
 ```svelte
-<script>
-	import { createEventDispatcher } from 'svelte';
-
-	const dispatch = createEventDispatcher();
+<!-- HeadlessToast.svelte -->
+<script lang="ts">
+	let { closeToast }: { closeToast: () => void } = $props();
 </script>
 
 <div>
-	This is a custom component <button onclick={() => dispatch('closeToast')}>close</button>
+	This is a custom component <button onclick={closeToast}>close</button>
 </div>
 ```
 
@@ -345,7 +344,7 @@ toast('Event has been created', {
 	duration: 10000
 });
 
-// Persisent toast
+// Persistent toast
 toast('Event has been created', {
 	duration: Number.POSITIVE_INFINITY
 });
@@ -369,14 +368,6 @@ You can focus on the toast area by pressing ⌥/alt + T. You can override it by 
 ```svelte
 <Toaster hotkey={['KeyC']} />
 ```
-
-## GitHub Pages Demo
-
-The live demo is deployed automatically to GitHub Pages at [https://quanghle.github.io/autopilot-svelte-sonner](https://quanghle.github.io/autopilot-svelte-sonner).
-
-### How it works
-
-The demo site is built using SvelteKit with `@sveltejs/adapter-static` and deployed via a GitHub Actions workflow (`.github/workflows/deploy.yml`). Every push to the `main` branch triggers a build and deploy to GitHub Pages.
 
 ## License
 

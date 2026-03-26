@@ -1,5 +1,5 @@
 name: 'Bug report'
-description: Report an issue with svelte-sonner
+description: Report an issue with autopilot-svelte-sonner
 labels: ['type: bug']
 body:
     - type: markdown
@@ -19,10 +19,7 @@ body:
       attributes:
           label: Reproduction
           description: |
-              Provide a minimal reproduction of the problem. Include a StackBlitz or link to a GitHub repository that we can easily run to recreate the issue. If a report is vague and does not have a reproduction, it will be closed without warning. 
-
-              To get started, you can use the following StackBlitz template:
-              https://stackblitz.com/edit/vitejs-vite-hriczm
+              Provide a minimal reproduction of the problem. Include a StackBlitz or link to a GitHub repository that we can easily run to recreate the issue. If a report is vague and does not have a reproduction, it will be closed without warning.
       validations:
           required: true
     - type: textarea
@@ -35,7 +32,7 @@ body:
       id: system-info
       attributes:
           label: System Info
-          description: Output of `npx envinfo --system --npmPackages svelte,svelte-sonner,@sveltejs/kit --binaries --browsers`
+          description: Output of `npx envinfo --system --npmPackages svelte,autopilot-svelte-sonner,@sveltejs/kit --binaries --browsers`
           render: bash
           placeholder: System, Binaries, Browsers
       validations:
@@ -48,6 +45,6 @@ body:
           options:
               - annoyance
               - blocking an upgrade
-              - blocking all usage of svelte-sonner
+              - blocking all usage of autopilot-svelte-sonner
       validations:
           required: true

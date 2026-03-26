@@ -5,7 +5,7 @@ body:
     - type: markdown
       attributes:
           value: |
-              This project's goal is to remain aligned with [sonner](https://sonner.emilkowal.ski). If the feature you are requesting is not in the original sonner, it will not be considered here.
+              This project is a Svelte port of [sonner](https://sonner.emilkowal.ski). Feature requests that align with the original library are preferred.
     - type: textarea
       id: feature-description
       attributes:

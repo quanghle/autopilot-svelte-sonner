@@ -1,73 +1,56 @@
 <script lang="ts" module>
-	// visible toasts amount
-	const VISIBLE_TOASTS_AMOUNT = 3;
+	import {
+		VISIBLE_TOASTS_AMOUNT,
+		VIEWPORT_OFFSET,
+		MOBILE_VIEWPORT_OFFSET,
+		DEFAULT_TOAST_DURATION,
+		TOAST_WIDTH,
+		GAP,
+		DARK,
+		LIGHT
+	} from './internal/constants.js';
 
-	// Viewport padding
-	const VIEWPORT_OFFSET = '24px';
+	const SIDES = ['top', 'right', 'bottom', 'left'] as const;
 
-	// Mobile viewport padding
-	const MOBILE_VIEWPORT_OFFSET = '16px';
+	type OffsetObject = Record<`--${'offset' | 'mobile-offset'}-${(typeof SIDES)[number]}`, string>;
 
-	// Default lifetime of a toasts (in ms)
-	const TOAST_LIFETIME = 4000;
+	function toCssValue(value: string | number): string {
+		return typeof value === 'number' ? `${value}px` : value;
+	}
 
-	// Default toast width
-	const TOAST_WIDTH = 356;
+	function resolveOffsetSides(
+		offset: ToasterProps['offset'],
+		fallback: string
+	): Record<(typeof SIDES)[number], string> {
+		const result = {} as Record<(typeof SIDES)[number], string>;
 
-	// Default gap between toasts
-	const GAP = 14;
+		if (typeof offset === 'string' || typeof offset === 'number') {
+			const val = toCssValue(offset);
+			for (const side of SIDES) result[side] = val;
+		} else if (typeof offset === 'object') {
+			for (const side of SIDES) {
+				const value = offset[side];
+				result[side] = value !== undefined ? toCssValue(value) : fallback;
+			}
+		} else {
+			for (const side of SIDES) result[side] = fallback;
+		}
 
-	const DARK = 'dark';
-	const LIGHT = 'light';
-
-	type OffsetObject = {
-		'--offset-top': string;
-		'--offset-right': string;
-		'--offset-bottom': string;
-		'--offset-left': string;
-		'--mobile-offset-top': string;
-		'--mobile-offset-right': string;
-		'--mobile-offset-bottom': string;
-		'--mobile-offset-left': string;
-	};
+		return result;
+	}
 
 	function getOffsetObject(
 		defaultOffset: ToasterProps['offset'],
 		mobileOffset: ToasterProps['mobileOffset']
-	) {
+	): OffsetObject {
+		const desktop = resolveOffsetSides(defaultOffset, VIEWPORT_OFFSET);
+		const mobile = resolveOffsetSides(mobileOffset, MOBILE_VIEWPORT_OFFSET);
 		const styles = {} as OffsetObject;
 
-		[defaultOffset, mobileOffset].forEach((offset, index) => {
-			const isMobile = index === 1;
-			const prefix = isMobile ? '--mobile-offset' : '--offset';
-			const defaultValue = isMobile
-				? MOBILE_VIEWPORT_OFFSET
-				: VIEWPORT_OFFSET;
-
-			function assignAll(offset: string | number) {
-				['top', 'right', 'bottom', 'left'].forEach((key) => {
-					styles[`${prefix}-${key}` as keyof OffsetObject] =
-						typeof offset === 'number' ? `${offset}px` : offset;
-				});
-			}
-
-			if (typeof offset === 'number' || typeof offset === 'string') {
-				assignAll(offset);
-			} else if (typeof offset === 'object') {
-				['top', 'right', 'bottom', 'left'].forEach((key) => {
-					const value = offset[key as keyof typeof offset];
-					if (value === undefined) {
-						styles[`${prefix}-${key}` as keyof OffsetObject] =
-							defaultValue;
-					} else {
-						styles[`${prefix}-${key}` as keyof OffsetObject] =
-							typeof value === 'number' ? `${value}px` : value;
-					}
-				});
-			} else {
-				assignAll(defaultValue);
-			}
-		});
+		for (const side of SIDES) {
+			styles[`--offset-${side}`] = desktop[side];
+			styles[`--mobile-offset-${side}`] = mobile[side];
+		}
 
 		return styles;
 	}
@@ -77,11 +60,8 @@
 	import { onMount, untrack } from 'svelte';
 	import { SonnerState, toastState } from './toast-state.svelte';
 	import Toast from './Toast.svelte';
-	import type { ToasterProps } from './types.js';
-	import type { Position } from './types.js';
-	import type {
-		FocusEventHandler
-	} from 'svelte/elements';
+	import type { ToasterProps, Position } from './types.js';
+	import type { FocusEventHandler } from 'svelte/elements';
 	import SuccessIcon from './icons/SuccessIcon.svelte';
 	import ErrorIcon from './icons/ErrorIcon.svelte';
 	import WarningIcon from './icons/WarningIcon.svelte';
@@ -116,7 +96,7 @@
 		mobileOffset = MOBILE_VIEWPORT_OFFSET,
 		theme = 'light',
 		richColors = false,
-		duration = TOAST_LIFETIME,
+		duration = DEFAULT_TOAST_DURATION,
 		visibleToasts = VISIBLE_TOASTS_AMOUNT,
 		toastOptions = {},
 		dir = 'auto',
