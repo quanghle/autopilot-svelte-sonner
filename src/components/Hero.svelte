@@ -10,8 +10,10 @@
 	</div>
 	<h1 class="heading">Autopilot Svelte Sonner</h1>
 	<p class="hero-description">
-		An opinionated toast component for Svelte.<br /> A port of Emil Kowalski's
-		Sonner.
+		An opinionated toast component for Svelte.<br /> Forked from
+		<a href="https://github.com/wobsoriano/svelte-sonner" target="_blank">svelte-sonner</a>,
+		a port of Emil Kowalski's
+		<a href="https://sonner.emilkowal.ski/" target="_blank">Sonner</a>.
 	</p>
 	<div class="buttons">
 		<button

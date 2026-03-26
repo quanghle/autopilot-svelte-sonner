@@ -1,12 +1,13 @@
 <footer class="wrapper">
 	<div class="container">
 		<p class="p">
-			<img src="" alt="" />
 			<span>
-				Ported by
-				<a href="https://github.com/quanghle" target="_blank">
-					quanghle.
-				</a>
+				Forked from
+				<a href="https://github.com/wobsoriano/svelte-sonner" target="_blank">svelte-sonner</a>
+				by
+				<a href="https://github.com/wobsoriano" target="_blank">wobsoriano</a>.
+				Maintained by
+				<a href="https://github.com/quanghle" target="_blank">quanghle</a>.
 			</span>
 		</p>
 	</div>

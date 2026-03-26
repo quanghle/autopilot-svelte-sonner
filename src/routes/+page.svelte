@@ -29,7 +29,7 @@
 		content="An opinionated toast component for Svelte."
 	/>
 	<meta name="keywords" content="svelte, toast, notification, web" />
-	<meta name="author" content="Robert Soriano" />
+	<meta name="author" content="quanghle" />
 	<meta name="og:title" content="Autopilot Svelte Sonner" />
 	<meta
 		name="og:description"
@@ -43,7 +43,7 @@
 	/>
 	<link rel="icon" href="{base}/favicon.png" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:site" content="@quanghle" />
+	<meta name="twitter:site" content="@autopilotsvelte" />
 	<meta
 		name="twitter:description"
 		content="An opinionated toast component for Svelte."
