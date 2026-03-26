@@ -1,7 +1,6 @@
 import type { Component, ComponentProps, Snippet } from 'svelte';
 import type { Expand } from './internal/types.js';
 import type { HTMLAttributes, HTMLOlAttributes, MouseEventHandler } from 'svelte/elements';
-export type FixMe = unknown;
 export type AnyComponent = Component<any, any, string>;
 export type ToastTypes = 'normal' | 'action' | 'success' | 'info' | 'warning' | 'error' | 'loading' | 'default';
 export type PromiseT<Data = unknown> = Promise<Data> | (() => Promise<Data>);
@@ -76,10 +75,6 @@ export type HeightT = {
     toastId: number | string;
 };
 export type Theme = 'light' | 'dark';
-export type ToastToDismiss = {
-    id: number | string;
-    dismiss: boolean;
-};
 export type ExternalToast<T extends AnyComponent = AnyComponent> = Omit<ToastT<T>, 'id' | 'type' | 'title' | 'promise' | 'updated'> & {
     id?: number | string;
 };

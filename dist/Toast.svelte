@@ -1,17 +1,11 @@
 <script lang="ts" module>
-	// Default lifetime of a toasts (in ms)
-	const TOAST_LIFETIME = 4000;
-
-	// Default gap between toasts
-	const GAP = 14;
-
-	// Threshold to dismiss a toast
-	const SWIPE_THRESHOLD = 45;
-
-	// Equal to exit animation duration
-	const TIME_BEFORE_UNMOUNT = 200;
-
-	const SCALE_MULTIPLIER = 0.05;
+	import {
+		DEFAULT_TOAST_DURATION,
+		GAP,
+		SWIPE_THRESHOLD,
+		TIME_BEFORE_UNMOUNT,
+		SCALE_MULTIPLIER
+	} from './internal/constants.js';
 
 	const DEFAULT_TOAST_CLASSES: ToastClasses = {
 		toast: '',
@@ -47,9 +41,9 @@
 		return directions;
 	}
 
-	function getDampening(delta: number) {
+	/** Returns a 0–1 multiplier that reduces swipe movement in the non-allowed direction. */
+	function getSwipeDampening(delta: number) {
 		const factor = Math.abs(delta) / 20;
-
 		return 1 / (1.5 + factor);
 	}
 </script>
@@ -110,7 +104,7 @@
 	let isSwiped = $state(false);
 	let offsetBeforeRemove = $state(0);
 	let initialHeight = $state(0);
-	let remainingTime = TOAST_LIFETIME;
+	let remainingTime = DEFAULT_TOAST_DURATION;
 	let dragStartTime = $state<Date | null>(null);
 	let toastRef = $state<HTMLLIElement>();
 	let swipeDirection = $state<'x' | 'y' | null>(null);
@@ -134,11 +128,11 @@
 	);
 	const closeButton = $derived(toast.closeButton ?? closeButtonFromToaster);
 	const duration = $derived(
-		toast.duration ?? durationFromToaster ?? TOAST_LIFETIME
+		toast.duration ?? durationFromToaster ?? DEFAULT_TOAST_DURATION
 	);
 	let pointerStart: { x: number; y: number } | null = null;
 	const coords = $derived(position.split('-'));
-	const toastsHeightBefore = $derived.by(() => {
+	const cumulativeHeightBefore = $derived.by(() => {
 		const heights = posHeights ?? toastState.heights;
 		let sum = 0;
 		const end = Math.min(heightIndex, heights.length);
@@ -159,7 +153,7 @@
 	let closeTimerStartTime = $state(0);
 	let lastCloseTimerStartTime = $state(0);
 
-	const offset = $derived(Math.round(heightIndex * GAP + toastsHeightBefore));
+	const offset = $derived(Math.round(heightIndex * GAP + cumulativeHeightBefore));
 
 	$effect(() => {
 		toastTitle;
@@ -377,7 +371,7 @@
 					swipeAmount.y = yDelta;
 				} else {
 					// smoothly transition to dampened movement
-					const dampenedDelta = yDelta * getDampening(yDelta);
+					const dampenedDelta = yDelta * getSwipeDampening(yDelta);
 					// ensure we don't jump when transition to dampened movement
 					swipeAmount.y =
 						Math.abs(dampenedDelta) < Math.abs(yDelta)
@@ -395,7 +389,7 @@
 					swipeAmount.x = xDelta;
 				} else {
 					// Smoothly transition to dampened movement
-					const dampenedDelta = xDelta * getDampening(xDelta);
+					const dampenedDelta = xDelta * getSwipeDampening(xDelta);
 					// Ensure we don't jump when transitioning to dampened movement
 					swipeAmount.x =
 						Math.abs(dampenedDelta) < Math.abs(xDelta)

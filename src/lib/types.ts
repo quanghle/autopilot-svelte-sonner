@@ -2,8 +2,6 @@ import type { Component, ComponentProps, Snippet } from 'svelte';
 import type { Expand } from '$lib/internal/types.js';
 import type { HTMLAttributes, HTMLOlAttributes, MouseEventHandler } from 'svelte/elements';
 
-export type FixMe = unknown;
-
 // We need this to consistently be this wide.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyComponent = Component<any, any, string>;
@@ -105,11 +103,6 @@ export type HeightT = {
 };
 
 export type Theme = 'light' | 'dark';
-
-export type ToastToDismiss = {
-	id: number | string;
-	dismiss: boolean;
-};
 
 export type ExternalToast<T extends AnyComponent = AnyComponent> = Omit<
 	ToastT<T>,
