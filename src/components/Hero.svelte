@@ -11,9 +11,9 @@
 	<h1 class="heading">Autopilot Svelte Sonner</h1>
 	<p class="hero-description">
 		An opinionated toast component for Svelte.<br /> Forked from
-		<a href="https://github.com/wobsoriano/svelte-sonner" target="_blank">svelte-sonner</a>,
+		<a href="https://github.com/wobsoriano/svelte-sonner" target="_blank" rel="noopener noreferrer">svelte-sonner</a>,
 		a port of Emil Kowalski's
-		<a href="https://sonner.emilkowal.ski/" target="_blank">Sonner</a>.
+		<a href="https://sonner.emilkowal.ski/" target="_blank" rel="noopener noreferrer">Sonner</a>.
 	</p>
 	<div class="buttons">
 		<button
@@ -32,6 +32,7 @@
 			class="button"
 			href="https://github.com/quanghle/autopilot-svelte-sonner"
 			target="_blank"
+			rel="noopener noreferrer"
 		>
 			GitHub
 		</a>

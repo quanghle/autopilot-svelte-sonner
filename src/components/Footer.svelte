@@ -3,11 +3,11 @@
 		<p class="p">
 			<span>
 				Forked from
-				<a href="https://github.com/wobsoriano/svelte-sonner" target="_blank">svelte-sonner</a>
+				<a href="https://github.com/wobsoriano/svelte-sonner" target="_blank" rel="noopener noreferrer">svelte-sonner</a>
 				by
-				<a href="https://github.com/wobsoriano" target="_blank">wobsoriano</a>.
+				<a href="https://github.com/wobsoriano" target="_blank" rel="noopener noreferrer">wobsoriano</a>.
 				Maintained by
-				<a href="https://github.com/quanghle" target="_blank">quanghle</a>.
+				<a href="https://github.com/quanghle" target="_blank" rel="noopener noreferrer">quanghle</a>.
 			</span>
 		</p>
 	</div>
