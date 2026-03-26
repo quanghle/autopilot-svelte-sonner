@@ -47,12 +47,7 @@ export type ToastAction = {
 };
 
 export function isAction(action: ToastAction | AnyComponent | undefined): action is ToastAction {
-	return (
-		action !== undefined &&
-		typeof action === 'object' &&
-		'label' in action &&
-		'onClick' in action
-	);
+	return action !== undefined && typeof action === 'object' && 'label' in action;
 }
 
 export type ToastT<T extends AnyComponent = AnyComponent> = {
@@ -250,7 +245,7 @@ export type ToasterProps = {
 	/**
 	 * Offset from the edges of the screen.
 	 *
-	 * @default '32px'
+	 * @default '24px'
 	 */
 	offset?: Offset;
 

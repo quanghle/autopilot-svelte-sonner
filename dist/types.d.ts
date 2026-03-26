@@ -190,7 +190,7 @@ export type ToasterProps = {
     /**
      * Offset from the edges of the screen.
      *
-     * @default '32px'
+     * @default '24px'
      */
     offset?: Offset;
     /**
