@@ -5,7 +5,7 @@ body:
     - type: markdown
       attributes:
           value: |
-              This project is a Svelte port of [sonner](https://sonner.emilkowal.ski). Feature requests that align with the original library are preferred.
+              This project is a fork of [svelte-sonner](https://github.com/wobsoriano/svelte-sonner), which is a Svelte port of [Sonner](https://sonner.emilkowal.ski). Feature requests that align with the original libraries are preferred.
     - type: textarea
       id: feature-description
       attributes:

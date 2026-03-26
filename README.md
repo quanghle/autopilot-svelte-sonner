@@ -1,14 +1,35 @@
 # autopilot-svelte-sonner
 
+[![npm version](https://img.shields.io/npm/v/autopilot-svelte-sonner?color=a1b858&label=npm)](https://www.npmjs.com/package/autopilot-svelte-sonner)
+[![license](https://img.shields.io/github/license/quanghle/autopilot-svelte-sonner)](https://github.com/quanghle/autopilot-svelte-sonner/blob/main/LICENSE)
 [![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-cc00ff.svg?style=for-the-badge&logo=pnpm)](https://pnpm.io/)
 
-An opinionated toast component for Svelte. A port of Emil Kowalski's [Sonner](https://sonner.emilkowal.ski/).
+An opinionated toast component for Svelte.
+
+> **Note:** This project is a fork of [svelte-sonner](https://github.com/wobsoriano/svelte-sonner) by [Robert Soriano](https://github.com/wobsoriano), which itself is a Svelte port of [Sonner](https://sonner.emilkowal.ski/) by [Emil Kowalski](https://github.com/emilkowalski).
 
 ## Demo
 
 Check out the live demo at [https://quanghle.github.io/autopilot-svelte-sonner](https://quanghle.github.io/autopilot-svelte-sonner).
 
-## Quick start
+## Installation
+
+```bash
+# pnpm
+pnpm add autopilot-svelte-sonner
+
+# npm
+npm install autopilot-svelte-sonner
+
+# yarn
+yarn add autopilot-svelte-sonner
+```
+
+### Prerequisites
+
+- [Svelte](https://svelte.dev/) 5.0 or later
+
+## Quick Start
 
 Add `<Toaster />` to your app, it will be the place where all your toasts will be rendered. After that, you can use `toast()` from anywhere in your app.
 
@@ -369,6 +390,15 @@ You can focus on the toast area by pressing ⌥/alt + T. You can override it by 
 <Toaster hotkey={['KeyC']} />
 ```
 
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Credits
+
+- [svelte-sonner](https://github.com/wobsoriano/svelte-sonner) by [Robert Soriano](https://github.com/wobsoriano) — the original Svelte port this project is forked from
+- [Sonner](https://sonner.emilkowal.ski/) by [Emil Kowalski](https://github.com/emilkowalski) — the original React toast library
+
 ## License
 
-MIT
+[MIT](LICENSE)
